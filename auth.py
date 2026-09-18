@@ -14,22 +14,36 @@ from supabase import create_client
 # =========================================================
 
 ENV_PATH = Path(__file__).resolve().with_name(".env")
-load_dotenv(dotenv_path=ENV_PATH, override=True)
+load_dotenv(dotenv_path=ENV_PATH, override=False)
 
 # =========================================================
 # SETTINGS
 # =========================================================
 
 def get_setting(name, default=None):
+    """
+    Configuration priority:
+    1. Streamlit Cloud secrets
+    2. Environment variables
+    3. Default
+    """
+
+    # Production: Streamlit Community Cloud
+    try:
+        if name in st.secrets:
+            value = st.secrets[name]
+            if value is not None and str(value).strip():
+                return str(value).strip()
+    except Exception:
+        pass
+
+    # Local development: .env / environment variables
     value = os.getenv(name)
 
-    if value:
-        return value
+    if value is not None and str(value).strip():
+        return str(value).strip()
 
-    try:
-        return st.secrets.get(name, default)
-    except Exception:
-        return default
+    return default
 
 
 SUPABASE_URL = get_setting("SUPABASE_URL")
@@ -132,11 +146,11 @@ div[data-testid="stWidgetLabel"] p {
 def get_supabase():
 
     if not SUPABASE_URL:
-        st.error("SUPABASE_URL is missing from .env.")
+        st.error("SUPABASE_URL is missing from the application configuration.")
         st.stop()
 
     if not SUPABASE_KEY:
-        st.error("SUPABASE_PUBLISHABLE_KEY is missing from .env.")
+        st.error("SUPABASE_PUBLISHABLE_KEY is missing from the application configuration.")
         st.stop()
 
     if "vn_supabase_client" not in st.session_state:
