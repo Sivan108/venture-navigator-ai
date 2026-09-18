@@ -272,6 +272,106 @@ div[data-testid="stTabs"] div[data-testid="stForm"] .stFormSubmitButton button s
 """
 
 
+
+# =========================================================
+# AUTH INPUT CONTRAST — FINAL NARROW OVERRIDE
+# =========================================================
+
+AUTH_INPUT_FIX = """
+<style>
+
+/* Only affect Login / Create Account forms */
+
+[data-testid="stTabs"] [data-testid="stForm"]
+div[data-baseweb="input"] > div,
+
+[data-testid="stTabs"] [data-testid="stForm"]
+div[data-baseweb="textarea"] > div {
+
+    background: #f4f7fb !important;
+    background-color: #f4f7fb !important;
+
+    border: 1px solid #83d8e8 !important;
+    border-radius: 11px !important;
+}
+
+
+/* Actual typed text */
+
+[data-testid="stTabs"] [data-testid="stForm"] input,
+[data-testid="stTabs"] [data-testid="stForm"] textarea {
+
+    background: #f4f7fb !important;
+    background-color: #f4f7fb !important;
+
+    color: #15384d !important;
+    -webkit-text-fill-color: #15384d !important;
+
+    caret-color: #15384d !important;
+
+    font-weight: 600 !important;
+}
+
+
+/* Placeholder text */
+
+[data-testid="stTabs"] [data-testid="stForm"] input::placeholder,
+[data-testid="stTabs"] [data-testid="stForm"] textarea::placeholder {
+
+    color: #718b9c !important;
+    -webkit-text-fill-color: #718b9c !important;
+
+    opacity: 1 !important;
+}
+
+
+/* Chrome / Safari autofill */
+
+[data-testid="stTabs"] [data-testid="stForm"]
+input:-webkit-autofill,
+
+[data-testid="stTabs"] [data-testid="stForm"]
+input:-webkit-autofill:hover,
+
+[data-testid="stTabs"] [data-testid="stForm"]
+input:-webkit-autofill:focus {
+
+    -webkit-text-fill-color: #15384d !important;
+
+    -webkit-box-shadow:
+        0 0 0 1000px #f4f7fb inset !important;
+
+    box-shadow:
+        0 0 0 1000px #f4f7fb inset !important;
+}
+
+
+/* Password eye icon */
+
+[data-testid="stTabs"] [data-testid="stForm"]
+div[data-baseweb="input"] svg {
+
+    color: #15384d !important;
+    fill: #15384d !important;
+}
+
+
+/* Labels remain white against blue auth panel */
+
+[data-testid="stTabs"] [data-testid="stForm"]
+[data-testid="stWidgetLabel"] p,
+
+[data-testid="stTabs"] [data-testid="stForm"] label {
+
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+
+    font-weight: 700 !important;
+}
+
+</style>
+"""
+
 # =========================================================
 # SUPABASE
 # =========================================================
@@ -334,6 +434,7 @@ def normalise_datetime(value):
 def auth_screen():
 
     st.markdown(AUTH_STYLE, unsafe_allow_html=True)
+    st.markdown(AUTH_INPUT_FIX, unsafe_allow_html=True)
 
     st.markdown(
         '<div class="vn-auth-badge">BETA • 7 DAYS FREE</div>',
