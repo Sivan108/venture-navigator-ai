@@ -1,0 +1,10 @@
+.env
+.streamlit/secrets.toml
+venture_navigator_env/
+venture_navigator_env_python39_backup/
+__pycache__/
+*.pyc
+.DS_Store
+app_broken_backup.py
+app_pre_auth_backup.py
+app_before_auth_*.py
