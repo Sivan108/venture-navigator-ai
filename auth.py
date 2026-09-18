@@ -60,56 +60,192 @@ ADMIN_EMAILS = {
 # =========================================================
 
 AUTH_STYLE = """
-/* AUTH LABEL CONTRAST FIX */
-
 <style>
 
-div[data-testid="stTabs"] label,
-div[data-testid="stTabs"] p,
-div[data-testid="stForm"] label,
-div[data-testid="stWidgetLabel"] p {
-    color: #ffffff !important;
-    font-weight: 700 !important;
-}
-
-</style>
-
-<style>
+/* ======================================================
+   AUTH PAGE
+====================================================== */
 
 .vn-auth-shell {
-    max-width: 720px;
+    max-width: 1100px;
     margin: 2rem auto;
 }
 
 .vn-auth-badge {
     display: inline-block;
-    padding: 0.38rem 0.72rem;
+    padding: 0.42rem 0.78rem;
     border-radius: 999px;
     background: linear-gradient(90deg, #0f4969, #1f78a7);
-    color: white !important;
-    font-weight: 750;
-    font-size: 0.82rem;
-    margin-bottom: 0.8rem;
+    color: #ffffff !important;
+    font-weight: 800;
+    font-size: 0.84rem;
+    margin-bottom: 0.9rem;
 }
 
 .vn-auth-title {
-    color: #153b55 !important;
-    font-size: 2.5rem;
-    font-weight: 850;
+    font-size: 3.2rem;
     line-height: 1.05;
-    margin-bottom: 0.5rem;
+    font-weight: 850;
+    color: #163c57 !important;
+    margin-bottom: 0.65rem;
 }
 
 .vn-auth-copy {
-    color: #35556b !important;
-    margin-bottom: 1.2rem;
+    font-size: 1.05rem;
+    font-weight: 650;
+    color: #173e58 !important;
+    margin-bottom: 1.25rem;
 }
+
+
+/* ======================================================
+   TABS ON SILVER BACKGROUND
+====================================================== */
+
+div[data-testid="stTabs"] button {
+    color: #173e58 !important;
+    font-weight: 800 !important;
+    font-size: 1rem !important;
+}
+
+div[data-testid="stTabs"] button p,
+div[data-testid="stTabs"] button span {
+    color: #173e58 !important;
+}
+
+div[data-testid="stTabs"] button[aria-selected="true"] {
+    color: #0c5677 !important;
+}
+
+
+/* ======================================================
+   AUTH FORM PANEL
+====================================================== */
+
+div[data-testid="stTabs"] div[data-testid="stForm"] {
+    background:
+        linear-gradient(
+            105deg,
+            #07334a 0%,
+            #09556f 45%,
+            #1682b5 75%,
+            #268fd1 100%
+        ) !important;
+
+    border: 1px solid rgba(45, 214, 238, 0.48) !important;
+    border-radius: 24px !important;
+    padding: 1.8rem !important;
+
+    box-shadow:
+        0 18px 42px rgba(20, 67, 92, 0.24) !important;
+}
+
+
+/* ======================================================
+   LABELS — WHITE ON NAVY
+====================================================== */
+
+div[data-testid="stTabs"] div[data-testid="stForm"] label,
+div[data-testid="stTabs"] div[data-testid="stForm"] [data-testid="stWidgetLabel"] p,
+div[data-testid="stTabs"] div[data-testid="stForm"] .stCheckbox p {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    font-weight: 750 !important;
+}
+
+
+/* ======================================================
+   INPUTS — LIGHT BACKGROUND / DARK TEXT
+====================================================== */
+
+div[data-testid="stTabs"] div[data-testid="stForm"] [data-baseweb="input"] > div,
+div[data-testid="stTabs"] div[data-testid="stForm"] [data-baseweb="textarea"] > div,
+div[data-testid="stTabs"] div[data-testid="stForm"] [data-baseweb="select"] > div {
+    background: #f3f8fc !important;
+    border: 1px solid #8cddec !important;
+    border-radius: 12px !important;
+}
+
+div[data-testid="stTabs"] div[data-testid="stForm"] input,
+div[data-testid="stTabs"] div[data-testid="stForm"] textarea {
+    color: #143a50 !important;
+    -webkit-text-fill-color: #143a50 !important;
+    font-weight: 650 !important;
+    background: transparent !important;
+}
+
+div[data-testid="stTabs"] div[data-testid="stForm"] input::placeholder,
+div[data-testid="stTabs"] div[data-testid="stForm"] textarea::placeholder {
+    color: #718da0 !important;
+    -webkit-text-fill-color: #718da0 !important;
+    opacity: 1 !important;
+}
+
+
+/* Password eye icon */
+div[data-testid="stTabs"] div[data-testid="stForm"] svg {
+    color: #173e58 !important;
+    fill: #173e58 !important;
+}
+
+
+/* ======================================================
+   CHECKBOX
+====================================================== */
+
+div[data-testid="stTabs"] div[data-testid="stForm"] .stCheckbox label,
+div[data-testid="stTabs"] div[data-testid="stForm"] .stCheckbox label span,
+div[data-testid="stTabs"] div[data-testid="stForm"] .stCheckbox label p {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    font-weight: 750 !important;
+}
+
+
+/* ======================================================
+   AUTH BUTTON
+====================================================== */
+
+div[data-testid="stTabs"] div[data-testid="stForm"] .stFormSubmitButton button {
+    width: 100% !important;
+    min-height: 3.5rem !important;
+
+    border-radius: 13px !important;
+    border: 1px solid rgba(255,255,255,0.30) !important;
+
+    background:
+        linear-gradient(
+            95deg,
+            #2dc8d8 0%,
+            #1da8df 48%,
+            #3578e5 100%
+        ) !important;
+
+    color: #ffffff !important;
+
+    font-size: 1rem !important;
+    font-weight: 850 !important;
+
+    box-shadow:
+        0 12px 28px rgba(18, 112, 188, 0.28) !important;
+}
+
+div[data-testid="stTabs"] div[data-testid="stForm"] .stFormSubmitButton button p,
+div[data-testid="stTabs"] div[data-testid="stForm"] .stFormSubmitButton button span {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+}
+
+
+/* ======================================================
+   BETA BAR AFTER LOGIN
+====================================================== */
 
 .vn-beta-bar {
     box-sizing: border-box;
     width: 100%;
     margin: 0 0 1rem 0;
-    padding: 0.65rem 0.9rem;
+    padding: 0.7rem 1rem;
     border-radius: 10px;
 
     background:
