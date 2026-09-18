@@ -46,9 +46,6 @@ def get_setting(name, default=None):
     return default
 
 
-SUPABASE_URL = get_setting("SUPABASE_URL")
-SUPABASE_KEY = get_setting("SUPABASE_PUBLISHABLE_KEY")
-
 BETA_DAYS = int(get_setting("BETA_DAYS", "7"))
 
 ADMIN_EMAILS = {
@@ -144,20 +141,28 @@ div[data-testid="stWidgetLabel"] p {
 # =========================================================
 
 def get_supabase():
+    # Read configuration at runtime so Streamlit Cloud secrets
+    # are guaranteed to be available.
 
-    if not SUPABASE_URL:
-        st.error("SUPABASE_URL is missing from the application configuration.")
+    supabase_url = get_setting("SUPABASE_URL")
+    supabase_key = get_setting("SUPABASE_PUBLISHABLE_KEY")
+
+    if not supabase_url:
+        st.error(
+            "SUPABASE_URL is missing from the application configuration."
+        )
         st.stop()
 
-    if not SUPABASE_KEY:
-        st.error("SUPABASE_PUBLISHABLE_KEY is missing from the application configuration.")
+    if not supabase_key:
+        st.error(
+            "SUPABASE_PUBLISHABLE_KEY is missing from the application configuration."
+        )
         st.stop()
 
     if "vn_supabase_client" not in st.session_state:
-
         st.session_state.vn_supabase_client = create_client(
-            SUPABASE_URL,
-            SUPABASE_KEY
+            supabase_url,
+            supabase_key
         )
 
     return st.session_state.vn_supabase_client
