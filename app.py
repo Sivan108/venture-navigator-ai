@@ -1121,3 +1121,131 @@ st.divider()
 st.caption(
     "Venture Navigator AI • Powered by AI Catalyst Studio • Beta"
 )
+
+
+# =========================================================
+# FINAL VENTURE PROFILE FORM CONTRAST FIX
+# =========================================================
+
+st.markdown("""
+<style>
+
+/* ======================================================
+   VENTURE PROFILE LABELS
+====================================================== */
+
+[data-testid="stForm"] [data-testid="stWidgetLabel"] p,
+[data-testid="stForm"] label {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    font-weight: 750 !important;
+}
+
+
+/* ======================================================
+   TEXT / TEXTAREA / SELECT FIELD CONTAINERS
+====================================================== */
+
+[data-testid="stForm"] div[data-baseweb="input"] > div,
+[data-testid="stForm"] div[data-baseweb="textarea"] > div,
+[data-testid="stForm"] div[data-baseweb="select"] > div {
+
+    background: #f1f6fa !important;
+    background-color: #f1f6fa !important;
+
+    border: 1px solid #8edbe8 !important;
+    border-radius: 11px !important;
+
+    box-shadow:
+        inset 0 1px 2px rgba(35,65,85,0.04) !important;
+}
+
+
+/* ======================================================
+   ACTUAL INPUT TEXT
+====================================================== */
+
+[data-testid="stForm"] input,
+[data-testid="stForm"] textarea {
+
+    background: #f1f6fa !important;
+    background-color: #f1f6fa !important;
+
+    color: #173b50 !important;
+    -webkit-text-fill-color: #173b50 !important;
+
+    caret-color: #173b50 !important;
+
+    font-weight: 600 !important;
+}
+
+
+/* ======================================================
+   PLACEHOLDER TEXT
+====================================================== */
+
+[data-testid="stForm"] input::placeholder,
+[data-testid="stForm"] textarea::placeholder {
+
+    color: #66879b !important;
+    -webkit-text-fill-color: #66879b !important;
+
+    opacity: 1 !important;
+}
+
+
+/* ======================================================
+   SELECT BOX TEXT
+====================================================== */
+
+[data-testid="stForm"] div[data-baseweb="select"] span,
+[data-testid="stForm"] div[data-baseweb="select"] div {
+
+    color: #173b50 !important;
+    -webkit-text-fill-color: #173b50 !important;
+}
+
+
+/* Dropdown arrow */
+[data-testid="stForm"] div[data-baseweb="select"] svg {
+
+    color: #173b50 !important;
+    fill: #173b50 !important;
+}
+
+
+/* ======================================================
+   SAFARI / CHROME AUTOFILL
+====================================================== */
+
+[data-testid="stForm"] input:-webkit-autofill,
+[data-testid="stForm"] input:-webkit-autofill:hover,
+[data-testid="stForm"] input:-webkit-autofill:focus {
+
+    -webkit-text-fill-color: #173b50 !important;
+
+    -webkit-box-shadow:
+        0 0 0 1000px #f1f6fa inset !important;
+
+    box-shadow:
+        0 0 0 1000px #f1f6fa inset !important;
+}
+
+
+/* ======================================================
+   FOCUS STATE
+====================================================== */
+
+[data-testid="stForm"] div[data-baseweb="input"] > div:focus-within,
+[data-testid="stForm"] div[data-baseweb="textarea"] > div:focus-within,
+[data-testid="stForm"] div[data-baseweb="select"] > div:focus-within {
+
+    border: 1px solid #26c7df !important;
+
+    box-shadow:
+        0 0 0 3px rgba(38,199,223,0.13) !important;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
