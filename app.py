@@ -1,8 +1,27 @@
 import os
+from pathlib import Path
 import streamlit as st
+import pandas as pd
+from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv
 from openai import OpenAI
-from auth import require_beta_access
+import io
+import re
+import html
+
+from reportlab.lib import colors
+from reportlab.lib.enums import TA_CENTER
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import mm
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Paragraph,
+    Spacer,
+    Image as RLImage,
+    HRFlowable,
+)
+from auth import require_beta_access, track_usage_event, get_supabase
 
 # =========================================================
 # CONFIGURATION
@@ -33,6 +52,248 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed",
 )
+
+
+
+# =========================================================
+# BRANDED PDF REPORT
+# =========================================================
+def build_branded_pdf(report_text, company_name=None):
+    buffer = io.BytesIO()
+
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=18 * mm,
+        leftMargin=18 * mm,
+        topMargin=15 * mm,
+        bottomMargin=18 * mm,
+        title="Venture Navigator AI - Venture Intelligence Report",
+        author="AI Catalyst Studio",
+    )
+
+    styles = getSampleStyleSheet()
+
+    title_style = ParagraphStyle(
+        "VNTitle",
+        parent=styles["Title"],
+        fontName="Helvetica-Bold",
+        fontSize=20,
+        leading=24,
+        textColor=colors.HexColor("#123d59"),
+        alignment=TA_CENTER,
+        spaceAfter=8,
+    )
+
+    subtitle_style = ParagraphStyle(
+        "VNSubtitle",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=10,
+        leading=13,
+        textColor=colors.HexColor("#168fbe"),
+        alignment=TA_CENTER,
+        spaceAfter=12,
+    )
+
+    h1_style = ParagraphStyle(
+        "VNH1",
+        parent=styles["Heading1"],
+        fontName="Helvetica-Bold",
+        fontSize=16,
+        leading=20,
+        textColor=colors.HexColor("#123d59"),
+        spaceBefore=12,
+        spaceAfter=7,
+    )
+
+    h2_style = ParagraphStyle(
+        "VNH2",
+        parent=styles["Heading2"],
+        fontName="Helvetica-Bold",
+        fontSize=13,
+        leading=17,
+        textColor=colors.HexColor("#176c91"),
+        spaceBefore=10,
+        spaceAfter=5,
+    )
+
+    body_style = ParagraphStyle(
+        "VNBody",
+        parent=styles["BodyText"],
+        fontName="Helvetica",
+        fontSize=9.5,
+        leading=14,
+        textColor=colors.HexColor("#233642"),
+        spaceAfter=6,
+    )
+
+    bullet_style = ParagraphStyle(
+        "VNBullet",
+        parent=body_style,
+        leftIndent=12,
+        firstLineIndent=-7,
+        spaceAfter=4,
+    )
+
+    story = []
+
+    logo_path = Path("logo_report.jpeg")
+    if logo_path.exists():
+        img = RLImage(str(logo_path))
+        max_width = 165 * mm
+        scale = min(max_width / img.imageWidth, 1)
+        img.drawWidth = img.imageWidth * scale
+        img.drawHeight = img.imageHeight * scale
+        story.append(img)
+        story.append(Spacer(1, 5 * mm))
+
+    story.append(
+        Paragraph(
+            "Venture Navigator AI",
+            title_style
+        )
+    )
+
+    story.append(
+        Paragraph(
+            "AI-Driven Venture and Market Intelligence",
+            subtitle_style
+        )
+    )
+
+    if company_name:
+        story.append(
+            Paragraph(
+                html.escape(company_name),
+                ParagraphStyle(
+                    "VNCompany",
+                    parent=styles["Heading2"],
+                    alignment=TA_CENTER,
+                    fontSize=12,
+                    textColor=colors.HexColor("#344f60"),
+                    spaceAfter=6,
+                )
+            )
+        )
+
+    story.append(
+        HRFlowable(
+            width="100%",
+            thickness=1,
+            color=colors.HexColor("#1da7d6"),
+            spaceBefore=3,
+            spaceAfter=10,
+        )
+    )
+
+    def fmt_inline(value):
+        safe = html.escape(value)
+        safe = re.sub(
+            r"\*\*(.+?)\*\*",
+            r"<b>\1</b>",
+            safe
+        )
+        safe = re.sub(
+            r"\*(.+?)\*",
+            r"<i>\1</i>",
+            safe
+        )
+        return safe
+
+    for raw_line in report_text.splitlines():
+        line = raw_line.strip()
+
+        if not line:
+            story.append(Spacer(1, 2.5 * mm))
+            continue
+
+        if line.startswith("### "):
+            story.append(
+                Paragraph(
+                    fmt_inline(line[4:]),
+                    h2_style
+                )
+            )
+            continue
+
+        if line.startswith("## "):
+            story.append(
+                Paragraph(
+                    fmt_inline(line[3:]),
+                    h1_style
+                )
+            )
+            continue
+
+        if line.startswith("# "):
+            story.append(
+                Paragraph(
+                    fmt_inline(line[2:]),
+                    h1_style
+                )
+            )
+            continue
+
+        if line.startswith(("- ", "* ")):
+            story.append(
+                Paragraph(
+                    "• " + fmt_inline(line[2:]),
+                    bullet_style
+                )
+            )
+            continue
+
+        numbered = re.match(r"^(\d+)\.\s+(.*)", line)
+        if numbered:
+            story.append(
+                Paragraph(
+                    f"{numbered.group(1)}. "
+                    + fmt_inline(numbered.group(2)),
+                    bullet_style
+                )
+            )
+            continue
+
+        story.append(
+            Paragraph(
+                fmt_inline(line),
+                body_style
+            )
+        )
+
+    story.append(Spacer(1, 8 * mm))
+
+    story.append(
+        HRFlowable(
+            width="100%",
+            thickness=0.7,
+            color=colors.HexColor("#9bb7c7"),
+            spaceBefore=4,
+            spaceAfter=6,
+        )
+    )
+
+    story.append(
+        Paragraph(
+            "Generated by Venture Navigator AI - AI Catalyst Studio<br/>"
+            "https://venture.aicatalyststudio.co.za",
+            ParagraphStyle(
+                "VNFooter",
+                parent=styles["Normal"],
+                fontSize=8,
+                leading=11,
+                alignment=TA_CENTER,
+                textColor=colors.HexColor("#607986"),
+            )
+        )
+    )
+
+    doc.build(story)
+
+    buffer.seek(0)
+    return buffer.getvalue()
+
 
 # =========================================================
 # FINAL RESTORED THEME
@@ -543,6 +804,344 @@ hr {
 # =========================================================
 
 beta_access = require_beta_access()
+
+
+# =========================================================
+# AI CATALYST STUDIO WEBSITE HEADER
+# =========================================================
+if os.path.exists("logo_dark.jpeg"):
+    top_logo_left, top_logo_mid, top_logo_right = st.columns(
+        [1.2, 5.6, 1.2]
+    )
+
+    with top_logo_mid:
+        st.image(
+            "logo_dark.jpeg",
+            use_container_width=True
+        )
+
+    st.write("")
+
+
+
+# =========================================================
+# ADMIN BETA STATS BOARD
+# =========================================================
+if beta_access.get("is_admin"):
+
+    with st.expander(
+        "📊 Venture Navigator Beta Stats",
+        expanded=False
+    ):
+        try:
+            supabase = get_supabase()
+
+            users_response = (
+                supabase
+                .table("venture_beta_users")
+                .select("*")
+                .order("registered_at", desc=True)
+                .execute()
+            )
+
+            events_response = (
+                supabase
+                .table("venture_usage_events")
+                .select("*")
+                .order("created_at", desc=True)
+                .limit(500)
+                .execute()
+            )
+
+            users = users_response.data or []
+            events = events_response.data or []
+
+            now = datetime.now(timezone.utc)
+
+            report_events = [
+                e for e in events
+                if e.get("event_type") == "report_generated"
+            ]
+
+            login_events = [
+                e for e in events
+                if e.get("event_type") == "login"
+            ]
+
+            active_24h = set()
+            active_7d = set()
+
+            for event in events:
+                created = event.get("created_at")
+                if not created:
+                    continue
+
+                try:
+                    dt = datetime.fromisoformat(
+                        created.replace("Z", "+00:00")
+                    )
+
+                    if now - dt <= timedelta(hours=24):
+                        active_24h.add(event.get("user_id"))
+
+                    if now - dt <= timedelta(days=7):
+                        active_7d.add(event.get("user_id"))
+
+                except Exception:
+                    pass
+
+            active_trials = 0
+            expired_trials = 0
+
+            for user in users:
+                registered = user.get("registered_at")
+
+                if not registered:
+                    continue
+
+                try:
+                    created = datetime.fromisoformat(
+                        registered.replace("Z", "+00:00")
+                    )
+
+                    if created + timedelta(days=7) > now:
+                        active_trials += 1
+                    else:
+                        expired_trials += 1
+
+                except Exception:
+                    pass
+
+            st.markdown("### Venture Navigator Beta Control Room")
+
+            m1, m2, m3, m4, m5 = st.columns(5)
+
+            m1.metric(
+                "Registered Users",
+                len(users)
+            )
+
+            m2.metric(
+                "Active Today",
+                len(active_24h)
+            )
+
+            m3.metric(
+                "Active 7 Days",
+                len(active_7d)
+            )
+
+            m4.metric(
+                "Reports Generated",
+                len(report_events)
+            )
+
+            m5.metric(
+                "Active Trials",
+                active_trials
+            )
+
+            st.divider()
+
+            # -------------------------------------------------
+            # DAILY REPORT USAGE
+            # -------------------------------------------------
+            daily_usage = {}
+
+            for event in report_events:
+                created = event.get("created_at")
+
+                if not created:
+                    continue
+
+                try:
+                    dt = datetime.fromisoformat(
+                        created.replace("Z", "+00:00")
+                    )
+
+                    day = dt.strftime("%Y-%m-%d")
+
+                    daily_usage[day] = (
+                        daily_usage.get(day, 0) + 1
+                    )
+
+                except Exception:
+                    pass
+
+            left, right = st.columns([1.25, 1])
+
+            with left:
+                st.markdown("#### Daily Report Usage")
+
+                if daily_usage:
+                    chart_df = pd.DataFrame(
+                        [
+                            {
+                                "Date": day,
+                                "Reports": count
+                            }
+                            for day, count
+                            in sorted(daily_usage.items())
+                        ]
+                    ).set_index("Date")
+
+                    st.bar_chart(chart_df)
+                else:
+                    st.info(
+                        "No report-generation activity recorded yet."
+                    )
+
+            # -------------------------------------------------
+            # MOST ACTIVE USERS
+            # -------------------------------------------------
+            with right:
+                st.markdown("#### Most Active Users")
+
+                usage_by_user = {}
+
+                for event in report_events:
+                    email = (
+                        event.get("user_email")
+                        or "Unknown user"
+                    )
+
+                    usage_by_user[email] = (
+                        usage_by_user.get(email, 0) + 1
+                    )
+
+                if usage_by_user:
+                    active_df = pd.DataFrame(
+                        [
+                            {
+                                "User": email,
+                                "Reports": count
+                            }
+                            for email, count in sorted(
+                                usage_by_user.items(),
+                                key=lambda x: x[1],
+                                reverse=True
+                            )
+                        ]
+                    )
+
+                    st.dataframe(
+                        active_df,
+                        use_container_width=True,
+                        hide_index=True
+                    )
+                else:
+                    st.info(
+                        "No user report activity yet."
+                    )
+
+            st.divider()
+
+            # -------------------------------------------------
+            # USER / TRIAL STATUS
+            # -------------------------------------------------
+            st.markdown("#### Beta Users")
+
+            user_rows = []
+
+            for user in users:
+                registered = user.get("registered_at")
+                last_login = user.get("last_login_at")
+
+                trial_status = "Unknown"
+                days_remaining = None
+
+                if registered:
+                    try:
+                        created = datetime.fromisoformat(
+                            registered.replace("Z", "+00:00")
+                        )
+
+                        end = created + timedelta(days=7)
+                        remaining = end - now
+
+                        if remaining.total_seconds() > 0:
+                            trial_status = "Active"
+                            days_remaining = max(
+                                1,
+                                remaining.days + (
+                                    1 if remaining.seconds else 0
+                                )
+                            )
+                        else:
+                            trial_status = "Expired"
+                            days_remaining = 0
+
+                    except Exception:
+                        pass
+
+                user_report_count = sum(
+                    1
+                    for event in report_events
+                    if event.get("user_id") == user.get("user_id")
+                )
+
+                user_rows.append(
+                    {
+                        "Email": user.get("email"),
+                        "Registered": registered,
+                        "Last Login": last_login,
+                        "Trial": trial_status,
+                        "Days Left": days_remaining,
+                        "Reports": user_report_count,
+                    }
+                )
+
+            if user_rows:
+                st.dataframe(
+                    pd.DataFrame(user_rows),
+                    use_container_width=True,
+                    hide_index=True
+                )
+            else:
+                st.info("No beta users recorded yet.")
+
+            st.divider()
+
+            # -------------------------------------------------
+            # RECENT ACTIVITY
+            # -------------------------------------------------
+            st.markdown("#### Recent Activity")
+
+            recent_rows = []
+
+            for event in events[:30]:
+                recent_rows.append(
+                    {
+                        "Time": event.get("created_at"),
+                        "User": event.get("user_email"),
+                        "Event": event.get("event_type"),
+                        "Venture": event.get("venture_name"),
+                        "Stage": event.get("venture_stage"),
+                        "Primary Goal": event.get("primary_goal"),
+                    }
+                )
+
+            if recent_rows:
+                st.dataframe(
+                    pd.DataFrame(recent_rows),
+                    use_container_width=True,
+                    hide_index=True
+                )
+            else:
+                st.info(
+                    "No usage events have been recorded yet."
+                )
+
+            st.caption(
+                f"Expired trials: {expired_trials} • "
+                f"Login events recorded: {len(login_events)}"
+            )
+
+        except Exception as stats_error:
+            st.warning(
+                f"Stats board could not be loaded: {stats_error}"
+            )
+
 
 
 # =========================================================
@@ -1084,6 +1683,20 @@ if submit:
 
                 report = response.output_text
 
+                track_usage_event(
+                    "report_generated",
+                    user=beta_access["user"],
+                    venture_name=company_name.strip() if company_name else None,
+                    venture_stage=stage,
+                    primary_goal=primary_goal,
+                    metadata={
+                        "geography": geography.strip() if geography else None,
+                        "revenue_model": revenue_model.strip() if revenue_model else None,
+                        "website_provided": bool(website.strip()) if website else False,
+                    }
+                )
+
+
                 status.update(
                     label="Venture Intelligence analysis complete",
                     state="complete"
@@ -1093,12 +1706,84 @@ if submit:
                     report
                 )
 
-                st.download_button(
-                    "Download Venture Intelligence Report",
-                    data=report,
-                    file_name="venture_navigator_report.md",
-                    mime="text/markdown",
-                    use_container_width=True
+                share_summary = (
+                    f"Venture Navigator AI generated a Venture Intelligence Report"
+                    f"{' for ' + company_name.strip() if company_name and company_name.strip() else ''}.\n\n"
+                    f"Primary decision: {primary_goal}\n"
+                    f"Stage: {stage}\n"
+                    f"Geography: {geography.strip() if geography else 'Not specified'}\n\n"
+                    "The report covers market opportunity, competitors, "
+                    "differentiation, MVP direction and practical next actions.\n\n"
+                    "Generated with Venture Navigator AI:\n"
+                    "https://venture.aicatalyststudio.co.za"
+                )
+
+                download_col, copy_col, whatsapp_col = st.columns(3)
+
+                with download_col:
+                    pdf_report = build_branded_pdf(
+                        report,
+                        company_name=company_name.strip()
+                        if company_name else None
+                    )
+
+                    st.download_button(
+                        "⬇️ Download Branded PDF",
+                        data=pdf_report,
+                        file_name="venture_navigator_report.pdf",
+                        mime="application/pdf",
+                        use_container_width=True
+                    )
+
+                with copy_col:
+                    import streamlit.components.v1 as components
+                    import json
+
+                    copy_payload = json.dumps(report)
+
+                    components.html(
+                        f"""
+                        <button
+                            onclick='navigator.clipboard.writeText({copy_payload}).then(() => {{
+                                this.innerText = "✅ Copied";
+                                setTimeout(() => this.innerText = "📋 Copy Report", 1500);
+                            }})'
+                            style="
+                                width:100%;
+                                height:48px;
+                                padding:0;
+                                border-radius:8px;
+                                border:1px solid #178fc4;
+                                background:linear-gradient(90deg,#08678d,#159fd2);
+                                color:#ffffff;
+                                font-weight:700;
+                                font-size:0.95rem;
+                                cursor:pointer;
+                            "
+                        >
+                            📋 Copy Report
+                        </button>
+                        """,
+                        height=52
+                    )
+
+                with whatsapp_col:
+                    import urllib.parse
+
+                    whatsapp_url = (
+                        "https://wa.me/?text="
+                        + urllib.parse.quote(share_summary)
+                    )
+
+                    st.link_button(
+                        "📱 Share on WhatsApp",
+                        whatsapp_url,
+                        use_container_width=True
+                    )
+
+                st.caption(
+                    "Tip: share the summary on WhatsApp, or download the branded "
+                    "PDF and attach it to WhatsApp or email."
                 )
 
             except Exception as error:
@@ -1111,6 +1796,41 @@ if submit:
                 st.error(
                     str(error)
                 )
+
+
+# =========================================================
+# REPORT ACTION BUTTON STYLING
+# =========================================================
+st.markdown("""
+<style>
+
+/* Report sharing/action buttons */
+div[data-testid="stDownloadButton"] > button,
+div[data-testid="stLinkButton"] > a {
+    width: 100% !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    border-radius: 8px !important;
+    border: 1px solid #178fc4 !important;
+    background: linear-gradient(90deg, #08678d, #159fd2) !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    font-size: 0.95rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-decoration: none !important;
+}
+
+div[data-testid="stDownloadButton"] > button:hover,
+div[data-testid="stLinkButton"] > a:hover {
+    background: linear-gradient(90deg, #075a7c, #1188b5) !important;
+    color: #ffffff !important;
+    border-color: #0e789f !important;
+}
+
+</style>
+""", unsafe_allow_html=True)
 
 # =========================================================
 # FOOTER

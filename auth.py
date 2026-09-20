@@ -431,6 +431,52 @@ def normalise_datetime(value):
 # AUTH SCREEN
 # =========================================================
 
+
+# =========================================================
+# USAGE TRACKING
+# =========================================================
+def track_usage_event(
+    event_type,
+    user=None,
+    venture_name=None,
+    venture_stage=None,
+    primary_goal=None,
+    metadata=None,
+):
+    """
+    Record Venture Navigator beta activity.
+    Tracking failures must never interrupt the user experience.
+    """
+    try:
+        if user is None:
+            user = st.session_state.get("vn_user")
+
+        if user is None:
+            return
+
+        user_id = str(user.id)
+        user_email = (user.email or "").strip().lower()
+
+        get_supabase().table("venture_usage_events").insert({
+            "user_id": user_id,
+            "user_email": user_email,
+            "event_type": event_type,
+            "venture_name": venture_name,
+            "venture_stage": venture_stage,
+            "primary_goal": primary_goal,
+            "metadata": metadata or {},
+        }).execute()
+
+        if event_type in {"login", "signup"}:
+            get_supabase().table("venture_beta_users").update({
+                "last_login_at": datetime.now(timezone.utc).isoformat()
+            }).eq("user_id", user_id).execute()
+
+    except Exception:
+        # Analytics must never interrupt the live application.
+        pass
+
+
 def auth_screen():
 
     st.markdown(AUTH_STYLE, unsafe_allow_html=True)
@@ -589,9 +635,12 @@ def auth_screen():
                     )
 
                     if response.session and response.user:
-
                         st.session_state.vn_user = response.user
-
+                        track_usage_event(
+                            "signup",
+                            user=response.user,
+                            metadata={"full_name": full_name.strip()}
+                        )
                         st.success(
                             "Welcome to Venture Navigator AI. "
                             "Your 7-day beta has started."
