@@ -1341,10 +1341,50 @@ with st.form("venture_form"):
             height=118
         )
 
-        revenue_model = st.text_input(
+        revenue_model_examples = {
+            "Product sales": "e.g. scented soaps, clothing, baked goods, beauty products",
+            "Subscription / SaaS": "e.g. monthly access to software, an app or online platform",
+            "Consulting / Professional services": "e.g. legal, engineering, advisory, design or accounting services",
+            "Commission / Brokerage": "e.g. earning a percentage for arranging a sale or transaction",
+            "Marketplace / Transaction fee": "e.g. charging a fee when buyers and sellers transact through your platform",
+            "Advertising / Sponsorship": "e.g. revenue from adverts, sponsored content or brand partnerships",
+            "Licensing": "e.g. charging others to use your software, technology, brand or intellectual property",
+            "Training / Courses": "e.g. workshops, coaching, professional training or online courses",
+            "Wholesale": "e.g. supplying products in bulk to retailers, salons or distributors",
+            "Retail": "e.g. selling products directly to customers through a shop, website or social media",
+            "Rental / Leasing": "e.g. charging customers to use equipment, vehicles or property",
+            "Franchise": "e.g. franchise fees and royalties from operators using your business model",
+            "Membership": "e.g. recurring fees for access to a club, community or specialist service",
+            "Freemium": "e.g. free basic access with paid premium features",
+            "Usage-based": "e.g. charging per API call, document, transaction or unit consumed",
+            "Donations / Grants": "e.g. NGO, community, research or grant-funded ventures",
+            "Mixed / Hybrid": "e.g. product sales plus wholesale, subscriptions or consulting",
+            "Not sure yet": "Choose this if you have not decided how the venture will make money",
+            "Other": "Select this if none of the listed models accurately describes the venture",
+        }
+
+        revenue_model_selection = st.selectbox(
             "Revenue Model",
-            placeholder="SaaS, licensing, consulting, transaction fee..."
+            options=list(revenue_model_examples.keys()),
+            index=0,
         )
+
+        st.caption(
+            f"Example: {revenue_model_examples[revenue_model_selection]}"
+        )
+
+        if revenue_model_selection == "Other":
+            revenue_model_custom = st.text_input(
+                "Describe your revenue model",
+                placeholder="Briefly explain how the venture makes money",
+            )
+            revenue_model = (
+                revenue_model_custom.strip()
+                if revenue_model_custom.strip()
+                else "Other / not yet specified"
+            )
+        else:
+            revenue_model = revenue_model_selection
 
         primary_goal = st.selectbox(
             "Primary Decision",
@@ -1732,7 +1772,8 @@ if submit:
                         data=pdf_report,
                         file_name="venture_navigator_report.pdf",
                         mime="application/pdf",
-                        use_container_width=True
+                        use_container_width=True,
+                        on_click="ignore"
                     )
 
                 with copy_col:
