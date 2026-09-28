@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from website_ingest import ingest_website
 import streamlit as st
 import pandas as pd
 from datetime import datetime, timezone, timedelta
@@ -20,6 +21,8 @@ from reportlab.platypus import (
     Spacer,
     Image as RLImage,
     HRFlowable,
+    Table,
+    TableStyle,
 )
 from auth import require_beta_access, track_usage_event, get_supabase
 
@@ -201,13 +204,243 @@ def build_branded_pdf(report_text, company_name=None):
         )
         return safe
 
-    for raw_line in report_text.splitlines():
+    def is_markdown_table_row(value):
+        value = value.strip()
+        return (
+            value.startswith("|")
+            and value.endswith("|")
+            and value.count("|") >= 2
+        )
+
+    def is_markdown_separator_row(value):
+        value = value.strip().strip("|")
+        cells = [cell.strip() for cell in value.split("|")]
+
+        if not cells:
+            return False
+
+        for cell in cells:
+            cleaned = cell.replace(":", "").replace("-", "").strip()
+            if cleaned:
+                return False
+
+        return True
+
+    def parse_markdown_table_row(value):
+        value = value.strip().strip("|")
+        return [cell.strip() for cell in value.split("|")]
+
+    def make_table_cell(value, header=False):
+        if header:
+            style = ParagraphStyle(
+                "VNTableHeaderCell",
+                parent=body_style,
+                fontName="Helvetica-Bold",
+                fontSize=7.2,
+                leading=9,
+                textColor=colors.HexColor("#17384D"),
+                spaceAfter=0,
+            )
+        else:
+            style = ParagraphStyle(
+                "VNTableBodyCell",
+                parent=body_style,
+                fontName="Helvetica",
+                fontSize=7.1,
+                leading=9,
+                textColor=colors.HexColor("#294B5F"),
+                spaceAfter=0,
+            )
+
+        return Paragraph(fmt_inline(value), style)
+
+    def add_markdown_table(table_rows):
+        if not table_rows:
+            return
+
+        parsed_rows = [
+            parse_markdown_table_row(row)
+            for row in table_rows
+            if not is_markdown_separator_row(row)
+        ]
+
+        if not parsed_rows:
+            return
+
+        column_count = max(len(row) for row in parsed_rows)
+
+        # Normalise uneven rows
+        for row in parsed_rows:
+            while len(row) < column_count:
+                row.append("")
+
+        table_data = []
+
+        for row_index, row in enumerate(parsed_rows):
+            table_data.append(
+                [
+                    make_table_cell(
+                        cell,
+                        header=(row_index == 0)
+                    )
+                    for cell in row
+                ]
+            )
+
+        available_width = 174 * mm
+
+        # Wider first column for scoring/opportunity matrices
+        if column_count >= 5:
+            first_width = 72 * mm
+            remaining_width = available_width - first_width
+            other_width = remaining_width / (column_count - 1)
+            col_widths = [first_width] + [
+                other_width
+                for _ in range(column_count - 1)
+            ]
+
+        elif column_count == 4:
+            col_widths = [
+                52 * mm,
+                40 * mm,
+                40 * mm,
+                42 * mm,
+            ]
+
+        elif column_count == 3:
+            col_widths = [
+                42 * mm,
+                62 * mm,
+                70 * mm,
+            ]
+
+        elif column_count == 2:
+            col_widths = [
+                58 * mm,
+                116 * mm,
+            ]
+
+        else:
+            col_widths = [
+                available_width / column_count
+                for _ in range(column_count)
+            ]
+
+        table = Table(
+            table_data,
+            colWidths=col_widths,
+            repeatRows=1,
+            hAlign="LEFT",
+        )
+
+        table.setStyle(
+            TableStyle(
+                [
+                    (
+                        "BACKGROUND",
+                        (0, 0),
+                        (-1, 0),
+                        colors.HexColor("#D9E8F0"),
+                    ),
+                    (
+                        "TEXTCOLOR",
+                        (0, 0),
+                        (-1, 0),
+                        colors.HexColor("#17384D"),
+                    ),
+                    (
+                        "VALIGN",
+                        (0, 0),
+                        (-1, -1),
+                        "TOP",
+                    ),
+                    (
+                        "GRID",
+                        (0, 0),
+                        (-1, -1),
+                        0.35,
+                        colors.HexColor("#AFC5D2"),
+                    ),
+                    (
+                        "LEFTPADDING",
+                        (0, 0),
+                        (-1, -1),
+                        4,
+                    ),
+                    (
+                        "RIGHTPADDING",
+                        (0, 0),
+                        (-1, -1),
+                        4,
+                    ),
+                    (
+                        "TOPPADDING",
+                        (0, 0),
+                        (-1, -1),
+                        4,
+                    ),
+                    (
+                        "BOTTOMPADDING",
+                        (0, 0),
+                        (-1, -1),
+                        4,
+                    ),
+                    (
+                        "ROWBACKGROUNDS",
+                        (0, 1),
+                        (-1, -1),
+                        [
+                            colors.white,
+                            colors.HexColor("#F5F8FA"),
+                        ],
+                    ),
+                ]
+            )
+        )
+
+        story.append(table)
+        story.append(Spacer(1, 4 * mm))
+
+    lines = report_text.splitlines()
+    line_index = 0
+
+    while line_index < len(lines):
+
+        raw_line = lines[line_index]
         line = raw_line.strip()
 
-        if not line:
-            story.append(Spacer(1, 2.5 * mm))
+        # -------------------------------------------------
+        # Markdown table
+        # -------------------------------------------------
+        if is_markdown_table_row(line):
+
+            table_rows = []
+
+            while (
+                line_index < len(lines)
+                and is_markdown_table_row(
+                    lines[line_index].strip()
+                )
+            ):
+                table_rows.append(
+                    lines[line_index].strip()
+                )
+                line_index += 1
+
+            add_markdown_table(table_rows)
             continue
 
+        # -------------------------------------------------
+        # Blank line
+        # -------------------------------------------------
+        if not line:
+            story.append(Spacer(1, 2.5 * mm))
+            line_index += 1
+            continue
+
+        # -------------------------------------------------
+        # Headings
+        # -------------------------------------------------
         if line.startswith("### "):
             story.append(
                 Paragraph(
@@ -215,6 +448,7 @@ def build_branded_pdf(report_text, company_name=None):
                     h2_style
                 )
             )
+            line_index += 1
             continue
 
         if line.startswith("## "):
@@ -224,6 +458,7 @@ def build_branded_pdf(report_text, company_name=None):
                     h1_style
                 )
             )
+            line_index += 1
             continue
 
         if line.startswith("# "):
@@ -233,8 +468,12 @@ def build_branded_pdf(report_text, company_name=None):
                     h1_style
                 )
             )
+            line_index += 1
             continue
 
+        # -------------------------------------------------
+        # Bullets
+        # -------------------------------------------------
         if line.startswith(("- ", "* ")):
             story.append(
                 Paragraph(
@@ -242,25 +481,36 @@ def build_branded_pdf(report_text, company_name=None):
                     bullet_style
                 )
             )
+            line_index += 1
             continue
 
-        numbered = re.match(r"^(\d+)\.\s+(.*)", line)
-        if numbered:
+        # -------------------------------------------------
+        # Markdown horizontal rule
+        # -------------------------------------------------
+        if line in ("---", "***", "___"):
             story.append(
-                Paragraph(
-                    f"{numbered.group(1)}. "
-                    + fmt_inline(numbered.group(2)),
-                    bullet_style
+                HRFlowable(
+                    width="100%",
+                    thickness=0.5,
+                    color=colors.HexColor("#B7C9D3"),
+                    spaceBefore=4,
+                    spaceAfter=6,
                 )
             )
+            line_index += 1
             continue
 
+        # -------------------------------------------------
+        # Ordinary paragraph
+        # -------------------------------------------------
         story.append(
             Paragraph(
                 fmt_inline(line),
                 body_style
             )
         )
+
+        line_index += 1
 
     story.append(Spacer(1, 8 * mm))
 
@@ -796,6 +1046,51 @@ hr {
     border-color: rgba(48, 77, 97, 0.18) !important;
 }
 
+
+
+/* ========================================================
+   GENERATED REPORT TABLE READABILITY
+   Keep Markdown report tables readable on light backgrounds
+======================================================== */
+
+div[data-testid="stMarkdownContainer"] table {
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(255, 255, 255, 0.82) !important;
+}
+
+div[data-testid="stMarkdownContainer"] table thead tr,
+div[data-testid="stMarkdownContainer"] table tbody tr {
+    background: rgba(255, 255, 255, 0.82) !important;
+}
+
+div[data-testid="stMarkdownContainer"] table th {
+    background: #d9e5ec !important;
+    color: #12384f !important;
+    font-weight: 750 !important;
+    border: 1px solid rgba(18, 56, 79, 0.16) !important;
+}
+
+div[data-testid="stMarkdownContainer"] table td {
+    background: rgba(255, 255, 255, 0.72) !important;
+    color: #294b5f !important;
+    border: 1px solid rgba(18, 56, 79, 0.12) !important;
+}
+
+div[data-testid="stMarkdownContainer"] table td p,
+div[data-testid="stMarkdownContainer"] table th p,
+div[data-testid="stMarkdownContainer"] table td span,
+div[data-testid="stMarkdownContainer"] table th span,
+div[data-testid="stMarkdownContainer"] table td strong,
+div[data-testid="stMarkdownContainer"] table th strong {
+    color: inherit !important;
+}
+
+div[data-testid="stMarkdownContainer"] table a {
+    color: #0788c8 !important;
+    font-weight: 650 !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -1183,7 +1478,7 @@ with st.container(border=True):
             ### Turn business ideas into commercial intelligence.
 
             Analyse the **market**, **competition**, **opportunity gaps**,
-            **differentiation**, **MVP direction** and practical actions
+            **differentiation**, **Minimum Viable Product (MVP) direction** and practical actions
             required to move a venture forward.
             """
         )
@@ -1437,6 +1732,8 @@ with st.form("venture_form"):
 
 # =========================================================
 # INTELLIGENCE PROMPT
+
+website_context = ""
 # =========================================================
 
 def create_analysis_prompt():
@@ -1456,6 +1753,18 @@ Business:
 
 Website:
 {website}
+
+WEBSITE RETRIEVAL RESULT:
+{website_context if website_context else "No website content was retrieved."}
+
+WEBSITE SOURCE RULES:
+
+- If a website was supplied and readable content appears above, treat that website as a PRIMARY SOURCE for the business's own products, services, courses, programmes, positioning and claims.
+- Distinguish information obtained from the business website from independent external market evidence.
+- Do not contradict clearly stated website offerings unless independent evidence demonstrates a conflict.
+- Do not claim that the website was analysed unless readable website content appears above.
+- If website retrieval failed, explicitly state that the supplied website could not be read directly and reduce confidence where that missing information materially affects the analysis.
+- External web research should complement the supplied business website, not silently replace it.
 
 Stage:
 {stage}
@@ -1709,6 +2018,52 @@ if submit:
                 "Defining the MVP and commercial direction..."
             )
 
+            website_context = ""
+
+            if website and website.strip():
+
+                st.write("Reading the supplied business website...")
+
+                website_result = ingest_website(
+                    website.strip()
+                )
+
+                if website_result["ok"]:
+
+                    website_context = website_result["context"]
+
+                    page_count = len(
+                        website_result["pages"]
+                    )
+
+                    st.success(
+                        f"Website successfully analysed: "
+                        f"{page_count} page"
+                        f"{'s' if page_count != 1 else ''} read."
+                    )
+
+                    with st.expander(
+                        "Website pages used",
+                        expanded=False,
+                    ):
+                        for page_url in website_result["pages"]:
+                            st.write(page_url)
+
+                else:
+
+                    website_context = (
+                        "WEBSITE ACCESS FAILED. "
+                        "The supplied website could not be read directly. "
+                        f"Reason: {website_result['error']}"
+                    )
+
+                    st.warning(
+                        "The supplied website could not be read directly. "
+                        "Venture Navigator will continue with broader public "
+                        "web research, but the final report must disclose "
+                        "that the business website itself was unavailable."
+                    )
+
             try:
 
                 response = client.responses.create(
@@ -1753,7 +2108,7 @@ if submit:
                     f"Stage: {stage}\n"
                     f"Geography: {geography.strip() if geography else 'Not specified'}\n\n"
                     "The report covers market opportunity, competitors, "
-                    "differentiation, MVP direction and practical next actions.\n\n"
+                    "differentiation, Minimum Viable Product (MVP) direction and practical next actions.\n\n"
                     "Generated with Venture Navigator AI:\n"
                     "https://venture.aicatalyststudio.co.za"
                 )
