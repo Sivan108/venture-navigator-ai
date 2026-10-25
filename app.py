@@ -157,14 +157,30 @@ def build_branded_pdf(
 
     story = []
 
-    # Compact brand header: preserve the original dark/cyan logo without allowing it
-    # to dominate the first page.
-    logo_candidates = [Path("Elongated_Logo_Header.png"), Path("Elongated_Logo.png"), Path("New_Logo_250626.png")]
-    logo_path = next((p for p in logo_candidates if p.exists()), None)
-    if logo_path:
-        img = RLImage(str(logo_path))
+    # Venture Navigator product logo
+    vn_logo = Path("VN_Logo_Horizontal.png")
+    if vn_logo.exists():
+        img = RLImage(str(vn_logo))
         max_width = 175 * mm
-        max_height = 32 * mm
+        max_height = 30 * mm
+        scale = min(max_width / img.imageWidth, max_height / img.imageHeight, 1)
+        img.drawWidth = img.imageWidth * scale
+        img.drawHeight = img.imageHeight * scale
+        story.append(img)
+        story.append(Spacer(1, 2 * mm))
+
+    # AI Catalyst Studio parent-company logo beneath
+    company_logo_candidates = [
+        Path("Elongated_Logo_Header.png"),
+        Path("Elongated_Logo.png"),
+        Path("New_Logo_250626.png"),
+    ]
+    company_logo = next((p for p in company_logo_candidates if p.exists()), None)
+
+    if company_logo:
+        img = RLImage(str(company_logo))
+        max_width = 150 * mm
+        max_height = 18 * mm
         scale = min(max_width / img.imageWidth, max_height / img.imageHeight, 1)
         img.drawWidth = img.imageWidth * scale
         img.drawHeight = img.imageHeight * scale
