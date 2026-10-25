@@ -71,7 +71,7 @@ AUTH_STYLE = """
     margin: 2rem auto;
 }
 
-.vn-auth-badge {
+'<div class="vn-auth-badge">BETA ACCESS</div>',
     display: inline-block;
     padding: 0.42rem 0.78rem;
     border-radius: 999px;
@@ -505,7 +505,7 @@ def auth_screen():
         st.image("VN_Icon.png", width=180)
 
     st.markdown(
-        '<div class="vn-auth-badge">BETA • 7 DAYS FREE</div>',
+        '<div class="vn-auth-badge">BETA ACCESS</div>',
         unsafe_allow_html=True
     )
 
@@ -617,11 +617,11 @@ def auth_screen():
             )
 
             beta_acknowledgement = st.checkbox(
-                "I understand that Venture Navigator AI is currently a beta version."
+                "I understand that Venture Navigator AI is currently in beta."
             )
 
             register_clicked = st.form_submit_button(
-                "Start my 7-day free beta",
+                "Create my account",
                 use_container_width=True
             )
 
@@ -678,7 +678,7 @@ def auth_screen():
                         )
                         st.success(
                             "Welcome to Venture Navigator AI. "
-                            "Your 7-day beta has started."
+                            "Your Venture Navigator AI access is active."
                         )
 
                         st.rerun()
@@ -780,53 +780,12 @@ def require_beta_access():
         }
 
     # -----------------------------------------------------
-    # 7-DAY BETA
+    # BETA ACCESS
     # -----------------------------------------------------
 
-    created_at = normalise_datetime(
-        user.created_at
-    )
 
-    trial_end = created_at + timedelta(
-        days=BETA_DAYS
-    )
-
-    now = datetime.now(timezone.utc)
-
-    remaining = trial_end - now
-
-    if remaining.total_seconds() <= 0:
-
-        st.error(
-            "Your 7-day Venture Navigator AI beta has ended."
-        )
-
-        st.markdown(
-            """
-            Contact **AI Catalyst Studio** if you would like
-            continued access to Venture Navigator AI.
-            """
-        )
-
-        if st.button(
-            "Log out",
-            key="vn_expired_logout",
-            use_container_width=True
-        ):
-            logout()
-
-        st.stop()
-
-    days_remaining = max(
-        1,
-        math.ceil(
-            remaining.total_seconds() / 86400
-        )
-    )
-
-    expiry = trial_end.strftime(
-        "%d %b %Y"
-    )
+    days_remaining = None
+    expiry = None
 
     left, right = st.columns([8, 1.3])
 
@@ -837,9 +796,7 @@ def require_beta_access():
             <div class="vn-beta-bar">
                 <strong>VENTURE NAVIGATOR AI • BETA</strong>
                 &nbsp;&nbsp;•&nbsp;&nbsp;
-                {days_remaining} day{"s" if days_remaining != 1 else ""} remaining
                 &nbsp;&nbsp;•&nbsp;&nbsp;
-                Ends {expiry}
                 &nbsp;&nbsp;•&nbsp;&nbsp;
                 {user.email}
             </div>
@@ -859,6 +816,6 @@ def require_beta_access():
     return {
         "user": user,
         "is_admin": False,
-        "days_remaining": days_remaining,
-        "trial_end": trial_end,
+        "days_remaining": None,
+        "trial_end": None,
     }

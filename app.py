@@ -1024,7 +1024,7 @@ hr {
 """, unsafe_allow_html=True)
 
 # =========================================================
-# REGISTRATION + 7-DAY BETA ACCESS
+# REGISTRATION + BETA ACCESS
 # =========================================================
 
 beta_access = require_beta_access()
@@ -1161,8 +1161,8 @@ if beta_access.get("is_admin"):
             )
 
             m5.metric(
-                "Active Trials",
-                active_trials
+                "Beta Access",
+                "Open"
             )
 
             st.divider()
@@ -1261,7 +1261,7 @@ if beta_access.get("is_admin"):
             st.divider()
 
             # -------------------------------------------------
-            # USER / TRIAL STATUS
+            # USER STATUS
             # -------------------------------------------------
             st.markdown("#### Beta Users")
 
@@ -1271,32 +1271,6 @@ if beta_access.get("is_admin"):
                 registered = user.get("registered_at")
                 last_login = user.get("last_login_at")
 
-                trial_status = "Unknown"
-                days_remaining = None
-
-                if registered:
-                    try:
-                        created = datetime.fromisoformat(
-                            registered.replace("Z", "+00:00")
-                        )
-
-                        end = created + timedelta(days=7)
-                        remaining = end - now
-
-                        if remaining.total_seconds() > 0:
-                            trial_status = "Active"
-                            days_remaining = max(
-                                1,
-                                remaining.days + (
-                                    1 if remaining.seconds else 0
-                                )
-                            )
-                        else:
-                            trial_status = "Expired"
-                            days_remaining = 0
-
-                    except Exception:
-                        pass
 
                 user_report_count = sum(
                     1
@@ -1308,10 +1282,7 @@ if beta_access.get("is_admin"):
                     {
                         "Email": user.get("email"),
                         "Registered": registered,
-                        "Last Login": last_login,
-                        "Trial": trial_status,
-                        "Days Left": days_remaining,
-                        "Reports": user_report_count,
+                        "Last Login": last_login,"Reports": user_report_count,
                     }
                 )
 
@@ -1357,7 +1328,6 @@ if beta_access.get("is_admin"):
                 )
 
             st.caption(
-                f"Expired trials: {expired_trials} • "
                 f"Login events recorded: {len(login_events)}"
             )
 
