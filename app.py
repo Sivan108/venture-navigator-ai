@@ -159,7 +159,7 @@ def build_branded_pdf(
 
     # Compact brand header: preserve the original dark/cyan logo without allowing it
     # to dominate the first page.
-    logo_candidates = [Path("Elongated_Logo_Header.png"), Path("Elongated_Logo.png"), Path("New_Logo_250626.png")]
+    logo_candidates = [Path("VN_Logo_Horizontal.png"), Path("Elongated_Logo_Header.png"), Path("Elongated_Logo.png"), Path("New_Logo_250626.png")]
     logo_path = next((p for p in logo_candidates if p.exists()), None)
     if logo_path:
         img = RLImage(str(logo_path))
@@ -1040,8 +1040,8 @@ if os.path.exists("Elongated_Logo_Header.png"):
 
     with top_logo_mid:
         st.image(
-            "VN_Icon.png",
-            width=180
+            "VN_Logo_Horizontal.png",
+            use_container_width=True
         )
 
     st.write("")
@@ -1372,7 +1372,7 @@ if beta_access.get("is_admin"):
 # HERO
 # =========================================================
 
-logo_path = "Elongated_Logo.png"
+logo_path = "VN_Logo_Horizontal.png"
 
 with st.container(border=True):
 

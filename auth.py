@@ -497,7 +497,9 @@ def auth_screen():
     st.markdown(AUTH_STYLE, unsafe_allow_html=True)
     st.markdown(AUTH_INPUT_FIX, unsafe_allow_html=True)
 
-    if Path("VN_Icon.png").exists():
+    if Path("VN_Logo_Horizontal.png").exists():
+        st.image("VN_Logo_Horizontal.png", use_container_width=True)
+    elif Path("VN_Icon.png").exists():
         st.image("VN_Icon.png", width=180)
 
     st.markdown(
