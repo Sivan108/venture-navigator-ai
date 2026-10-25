@@ -125,19 +125,17 @@ div[data-testid="stTabs"] button[aria-selected="true"] {
 div[data-testid="stTabs"] div[data-testid="stForm"] {
     background:
         linear-gradient(
-            105deg,
-            #07334a 0%,
-            #09556f 45%,
-            #1682b5 75%,
-            #268fd1 100%
+            145deg,
+            rgba(255,255,255,0.98) 0%,
+            rgba(233,239,244,0.98) 100%
         ) !important;
 
-    border: 1px solid rgba(45, 214, 238, 0.48) !important;
-    border-radius: 24px !important;
+    border: 1px solid rgba(33, 122, 154, 0.24) !important;
+    border-radius: 20px !important;
     padding: 1.8rem !important;
 
     box-shadow:
-        0 18px 42px rgba(20, 67, 92, 0.24) !important;
+        0 16px 34px rgba(40, 67, 83, 0.12) !important;
 }
 
 
@@ -148,8 +146,8 @@ div[data-testid="stTabs"] div[data-testid="stForm"] {
 div[data-testid="stTabs"] div[data-testid="stForm"] label,
 div[data-testid="stTabs"] div[data-testid="stForm"] [data-testid="stWidgetLabel"] p,
 div[data-testid="stTabs"] div[data-testid="stForm"] .stCheckbox p {
-    color: #ffffff !important;
-    -webkit-text-fill-color: #ffffff !important;
+    color: #173e58 !important;
+    -webkit-text-fill-color: #173e58 !important;
     font-weight: 750 !important;
 }
 
@@ -196,8 +194,8 @@ div[data-testid="stTabs"] div[data-testid="stForm"] svg {
 div[data-testid="stTabs"] div[data-testid="stForm"] .stCheckbox label,
 div[data-testid="stTabs"] div[data-testid="stForm"] .stCheckbox label span,
 div[data-testid="stTabs"] div[data-testid="stForm"] .stCheckbox label p {
-    color: #ffffff !important;
-    -webkit-text-fill-color: #ffffff !important;
+    color: #173e58 !important;
+    -webkit-text-fill-color: #173e58 !important;
     font-weight: 750 !important;
 }
 
@@ -236,6 +234,23 @@ div[data-testid="stTabs"] div[data-testid="stForm"] .stFormSubmitButton button s
     -webkit-text-fill-color: #ffffff !important;
 }
 
+
+/* ======================================================
+   AUTH TRUST PANEL
+====================================================== */
+
+.vn-auth-trust {
+    background: linear-gradient(135deg, rgba(255,255,255,0.94), rgba(230,239,244,0.94));
+    border: 1px solid rgba(20, 156, 190, 0.26);
+    border-left: 4px solid #20b9d7;
+    border-radius: 13px;
+    padding: 0.9rem 1rem;
+    margin: 0.8rem 0 1.15rem 0;
+    color: #244d62 !important;
+    font-size: 0.94rem;
+    line-height: 1.45;
+}
+.vn-auth-trust strong { color: #153b55 !important; }
 
 /* ======================================================
    BETA BAR AFTER LOGIN
@@ -482,6 +497,9 @@ def auth_screen():
     st.markdown(AUTH_STYLE, unsafe_allow_html=True)
     st.markdown(AUTH_INPUT_FIX, unsafe_allow_html=True)
 
+    if Path("Elongated_Logo.png").exists():
+        st.image("Elongated_Logo.png", use_container_width=True)
+
     st.markdown(
         '<div class="vn-auth-badge">BETA • 7 DAYS FREE</div>',
         unsafe_allow_html=True
@@ -490,7 +508,20 @@ def auth_screen():
     st.title("Venture Navigator AI")
 
     st.markdown(
-        "**Register for beta access or sign in to continue.**"
+        "**AI-powered venture intelligence by AI Catalyst Studio.** "
+        "Sign in or create an account to continue."
+    )
+
+    st.markdown(
+        """
+        <div class="vn-auth-trust">
+            <strong>🔒 Your venture ideas remain yours.</strong><br/>
+            Your venture information is treated as confidential. AI Catalyst Studio does not use
+            submitted venture ideas to develop competing products or commercial opportunities.
+            Venture content is processed only to provide the Venture Navigator service.
+        </div>
+        """,
+        unsafe_allow_html=True
     )
 
     login_tab, register_tab = st.tabs(
