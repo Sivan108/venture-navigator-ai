@@ -1,4 +1,4 @@
-﻿import os
+import os
 from pathlib import Path
 import streamlit as st
 import pandas as pd
@@ -349,9 +349,9 @@ def build_branded_pdf(
                 if isinstance(item, dict):
                     label = item.get("item", "Option")
                     reason = item.get("reason", "")
-                    story.append(Paragraph(f"â€¢ <b>{fmt_inline(label)}</b> - {fmt_inline(reason)}", bullet_style))
+                    story.append(Paragraph(f"• <b>{fmt_inline(label)}</b> - {fmt_inline(reason)}", bullet_style))
                 else:
-                    story.append(Paragraph("â€¢ " + fmt_inline(item), bullet_style))
+                    story.append(Paragraph("• " + fmt_inline(item), bullet_style))
 
         plan = executive_data.get("action_plan_90_day") or {}
         if isinstance(plan, dict) and plan:
@@ -360,7 +360,7 @@ def build_branded_pdf(
             plan_cells = []
             for key, title in [("days_0_30", "0-30 DAYS"), ("days_31_60", "31-60 DAYS"), ("days_61_90", "61-90 DAYS")]:
                 items = plan.get(key) or []
-                body = "<br/>".join([f"â€¢ {fmt_inline(x)}" for x in items[:5]]) or "No action returned."
+                body = "<br/>".join([f"• {fmt_inline(x)}" for x in items[:5]]) or "No action returned."
                 plan_cells.append([Paragraph(title, card_label), Spacer(1, 1.5 * mm), Paragraph(body, small_style)])
             plan_table = Table([plan_cells], colWidths=[57.3 * mm] * 3)
             plan_table.setStyle(TableStyle([
@@ -434,9 +434,9 @@ def build_branded_pdf(
             story.append(Paragraph(fmt_inline(line[3:]), section_style)); i += 1; continue
         if line.startswith("# "):
             story.append(Paragraph(fmt_inline(line[2:]), section_style)); i += 1; continue
-        if line.startswith(("- ", "* ", "â€¢ ")):
+        if line.startswith(("- ", "* ", "• ")):
             content = line[2:] if line[:2] in ("- ", "* ") else line[1:].strip()
-            story.append(Paragraph("â€¢ " + fmt_inline(content), bullet_style)); i += 1; continue
+            story.append(Paragraph("• " + fmt_inline(content), bullet_style)); i += 1; continue
         numbered = re.match(r"^(\d+)\.\s+(.*)", line)
         if numbered:
             story.append(Paragraph(f"{numbered.group(1)}. " + fmt_inline(numbered.group(2)), bullet_style)); i += 1; continue
@@ -1054,7 +1054,7 @@ if os.path.exists("Elongated_Logo_Header.png"):
 if beta_access.get("is_admin"):
 
     with st.expander(
-        "ðŸ“Š Venture Navigator Beta Stats",
+        "📊 Venture Navigator Beta Stats",
         expanded=False
     ):
         try:
@@ -1357,7 +1357,7 @@ if beta_access.get("is_admin"):
                 )
 
             st.caption(
-                f"Expired trials: {expired_trials} â€¢ "
+                f"Expired trials: {expired_trials} • "
                 f"Login events recorded: {len(login_events)}"
             )
 
@@ -1395,7 +1395,7 @@ with st.container(border=True):
     with title_col:
 
         st.caption(
-            "AI CATALYST STUDIO â€¢ BUSINESS INTELLIGENCE"
+            "AI CATALYST STUDIO • BUSINESS INTELLIGENCE"
         )
 
         st.title(
@@ -1414,10 +1414,10 @@ with st.container(border=True):
 
         b1, b2, b3, b4 = st.columns(4)
 
-        b1.info("ðŸ“Š Market Intelligence")
-        b2.info("ðŸŽ¯ Opportunity Discovery")
-        b3.info("ðŸ’¡ Differentiation")
-        b4.info("ðŸš€ MVP Strategy")
+        b1.info("📊 Market Intelligence")
+        b2.info("🎯 Opportunity Discovery")
+        b3.info("💡 Differentiation")
+        b4.info("🚀 MVP Strategy")
 
 st.write("")
 
@@ -1436,7 +1436,7 @@ with st.container(
 
     st.markdown(
         """
-        ### Business â†’ Market â†’ Competitors â†’ Opportunity Gaps â†’ Differentiation â†’ MVP â†’ Action Plan
+        ### Business → Market → Competitors → Opportunity Gaps → Differentiation → MVP → Action Plan
         """
     )
 
@@ -1527,7 +1527,7 @@ st.markdown(
 st.markdown(
     """
     <div class="vn-trust-panel">
-        <div class="vn-trust-title">ðŸ”’ Your venture ideas remain yours</div>
+        <div class="vn-trust-title">🔒 Your venture ideas remain yours</div>
         <p class="vn-trust-copy">
             Your venture information is treated as confidential and is processed only to provide
             Venture Navigator analysis. AI Catalyst Studio does not use your venture ideas to develop
@@ -1923,7 +1923,7 @@ with st.form("venture_form"):
     )
 
     traction_notes = st.text_area(
-        "Traction / Validation Evidence â€” Details",
+        "Traction / Validation Evidence — Details",
         placeholder=(
             "Add numbers, named pilots, outcomes, usage evidence, commitments, conversion intent "
             "or other proof supporting the selected traction evidence."
@@ -1941,7 +1941,7 @@ with st.form("venture_form"):
     )
 
     st.caption(
-        "ðŸ”’ Financial and venture information is used only to generate your analysis. "
+        "🔒 Financial and venture information is used only to generate your analysis. "
         "AI Catalyst Studio does not use submitted venture ideas for competing commercial opportunities."
     )
 
@@ -2661,13 +2661,13 @@ def render_executive_dashboard(data, currency_code="ZAR"):
             try:
                 low = float(valuation_low)
                 high = float(valuation_high)
-                st.markdown(f"# {currency_code} {low:,.0f} â€“ {currency_code} {high:,.0f}")
+                st.markdown(f"# {currency_code} {low:,.0f} – {currency_code} {high:,.0f}")
             except Exception:
                 st.markdown("**Valuation range unavailable**")
         else:
             st.markdown("**Insufficient evidence for a responsible monetary range**")
-        st.caption(f"Method: {method} â€¢ Confidence: {confidence}")
-        st.caption("Indicative decision-support estimate only â€” not a formal business valuation, investment opinion or fairness opinion.")
+        st.caption(f"Method: {method} • Confidence: {confidence}")
+        st.caption("Indicative decision-support estimate only — not a formal business valuation, investment opinion or fairness opinion.")
         rationale = val.get("rationale")
         if rationale:
             st.write(rationale)
@@ -2684,7 +2684,7 @@ def render_executive_dashboard(data, currency_code="ZAR"):
             if items:
                 for item in items[:3]:
                     if isinstance(item, dict):
-                        st.markdown(f"**{item.get('item','Option')}** â€” {item.get('reason','')}")
+                        st.markdown(f"**{item.get('item','Option')}** — {item.get('reason','')}")
                     else:
                         st.markdown(f"- {item}")
             else:
@@ -2722,7 +2722,7 @@ def render_executive_dashboard(data, currency_code="ZAR"):
     if isinstance(plan, dict) and plan:
         st.markdown("### 90-Day Action Plan")
         p1, p2, p3 = st.columns(3)
-        for col, key, title in [(p1,"days_0_30","0â€“30 Days"),(p2,"days_31_60","31â€“60 Days"),(p3,"days_61_90","61â€“90 Days")]:
+        for col, key, title in [(p1,"days_0_30","0–30 Days"),(p2,"days_31_60","31–60 Days"),(p3,"days_61_90","61–90 Days")]:
             with col:
                 with st.container(border=True):
                     st.markdown(f"**{title}**")
@@ -2779,7 +2779,7 @@ if submit:
             )
 
             st.write(
-                "Market â€¢ Competition â€¢ Opportunity â€¢ Differentiation â€¢ MVP"
+                "Market • Competition • Opportunity • Differentiation • MVP"
             )
 
         with st.status(
@@ -2901,7 +2901,7 @@ if submit:
                     )
 
                     st.download_button(
-                        "â¬‡ï¸ Download Branded PDF",
+                        "⬇️ Download Branded PDF",
                         data=pdf_report,
                         file_name="venture_navigator_report.pdf",
                         mime="application/pdf",
@@ -2918,8 +2918,8 @@ if submit:
                         f"""
                         <button
                             onclick='navigator.clipboard.writeText({copy_payload}).then(() => {{
-                                this.innerText = "âœ… Copied";
-                                setTimeout(() => this.innerText = "ðŸ“‹ Copy Report", 1500);
+                                this.innerText = "✅ Copied";
+                                setTimeout(() => this.innerText = "📋 Copy Report", 1500);
                             }})'
                             style="
                                 width:100%;
@@ -2934,7 +2934,7 @@ if submit:
                                 cursor:pointer;
                             "
                         >
-                            ðŸ“‹ Copy Report
+                            📋 Copy Report
                         </button>
                         """,
                         height=52
@@ -2949,7 +2949,7 @@ if submit:
                     )
 
                     st.link_button(
-                        "ðŸ“± Share on WhatsApp",
+                        "📱 Share on WhatsApp",
                         whatsapp_url,
                         use_container_width=True
                     )
@@ -3082,7 +3082,7 @@ st.markdown("""
 st.divider()
 
 st.caption(
-    "Venture Navigator AI â€¢ Powered by AI Catalyst Studio â€¢ Beta  |  Your venture. Your data. Your intellectual property."
+    "Venture Navigator AI • Powered by AI Catalyst Studio • Beta  |  Your venture. Your data. Your intellectual property."
 )
 
 
@@ -3228,8 +3228,4 @@ st.markdown("""
 
 </style>
 """, unsafe_allow_html=True)
-
-
-
-
 
