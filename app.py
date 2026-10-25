@@ -1342,7 +1342,7 @@ if beta_access.get("is_admin"):
 # HERO
 # =========================================================
 
-logo_path = "VN_Logo_Horizontal.png"
+logo_path = "New_Logo_250626.png"
 
 with st.container(border=True):
 
