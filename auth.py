@@ -499,6 +499,8 @@ def auth_screen():
 
     if Path("VN_Logo_Horizontal.png").exists():
         st.image("VN_Logo_Horizontal.png", use_container_width=True)
+    elif Path("VN_Logo_Horizontal.png").exists():
+        st.image("VN_Logo_Horizontal.png", use_container_width=True)
     elif Path("VN_Icon.png").exists():
         st.image("VN_Icon.png", width=180)
 
