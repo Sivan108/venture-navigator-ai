@@ -1,4 +1,4 @@
-import os
+﻿import os
 from pathlib import Path
 import math
 from datetime import datetime, timedelta, timezone
@@ -140,7 +140,7 @@ div[data-testid="stTabs"] div[data-testid="stForm"] {
 
 
 /* ======================================================
-   LABELS — WHITE ON NAVY
+   LABELS â€” WHITE ON NAVY
 ====================================================== */
 
 div[data-testid="stTabs"] div[data-testid="stForm"] label,
@@ -153,7 +153,7 @@ div[data-testid="stTabs"] div[data-testid="stForm"] .stCheckbox p {
 
 
 /* ======================================================
-   INPUTS — LIGHT BACKGROUND / DARK TEXT
+   INPUTS â€” LIGHT BACKGROUND / DARK TEXT
 ====================================================== */
 
 div[data-testid="stTabs"] div[data-testid="stForm"] [data-baseweb="input"] > div,
@@ -289,7 +289,7 @@ div[data-testid="stTabs"] div[data-testid="stForm"] .stFormSubmitButton button s
 
 
 # =========================================================
-# AUTH INPUT CONTRAST — FINAL NARROW OVERRIDE
+# AUTH INPUT CONTRAST â€” FINAL NARROW OVERRIDE
 # =========================================================
 
 AUTH_INPUT_FIX = """
@@ -497,8 +497,8 @@ def auth_screen():
     st.markdown(AUTH_STYLE, unsafe_allow_html=True)
     st.markdown(AUTH_INPUT_FIX, unsafe_allow_html=True)
 
-    if Path("Elongated_Logo.png").exists():
-        st.image("Elongated_Logo.png", use_container_width=True)
+    if Path("VN_Icon.png").exists():
+        st.image("VN_Icon.png", width=180)
 
     st.markdown(
         '<div class="vn-auth-badge">BETA • 7 DAYS FREE</div>',
@@ -515,7 +515,7 @@ def auth_screen():
     st.markdown(
         """
         <div class="vn-auth-trust">
-            <strong>🔒 Your venture ideas remain yours.</strong><br/>
+            <strong>ðŸ”’ Your venture ideas remain yours.</strong><br/>
             Your venture information is treated as confidential. AI Catalyst Studio does not use
             submitted venture ideas to develop competing products or commercial opportunities.
             Venture content is processed only to provide the Venture Navigator service.
@@ -752,8 +752,8 @@ def require_beta_access():
             st.markdown(
                 f"""
                 <div class="vn-beta-bar">
-                    <strong>VENTURE NAVIGATOR AI • BETA ADMIN</strong>
-                    &nbsp;&nbsp;•&nbsp;&nbsp;
+                    <strong>VENTURE NAVIGATOR AI â€¢ BETA ADMIN</strong>
+                    &nbsp;&nbsp;â€¢&nbsp;&nbsp;
                     {user.email}
                 </div>
                 """,
@@ -831,12 +831,12 @@ def require_beta_access():
         st.markdown(
             f"""
             <div class="vn-beta-bar">
-                <strong>VENTURE NAVIGATOR AI • BETA</strong>
-                &nbsp;&nbsp;•&nbsp;&nbsp;
+                <strong>VENTURE NAVIGATOR AI â€¢ BETA</strong>
+                &nbsp;&nbsp;â€¢&nbsp;&nbsp;
                 {days_remaining} day{"s" if days_remaining != 1 else ""} remaining
-                &nbsp;&nbsp;•&nbsp;&nbsp;
+                &nbsp;&nbsp;â€¢&nbsp;&nbsp;
                 Ends {expiry}
-                &nbsp;&nbsp;•&nbsp;&nbsp;
+                &nbsp;&nbsp;â€¢&nbsp;&nbsp;
                 {user.email}
             </div>
             """,
@@ -858,3 +858,6 @@ def require_beta_access():
         "days_remaining": days_remaining,
         "trial_end": trial_end,
     }
+
+
+

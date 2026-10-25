@@ -1040,8 +1040,8 @@ if os.path.exists("Elongated_Logo_Header.png"):
 
     with top_logo_mid:
         st.image(
-            "Elongated_Logo_Header.png",
-            use_container_width=True
+            "VN_Icon.png",
+            width=180
         )
 
     st.write("")
@@ -3228,6 +3228,8 @@ st.markdown("""
 
 </style>
 """, unsafe_allow_html=True)
+
+
 
 
 
