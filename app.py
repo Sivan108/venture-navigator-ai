@@ -28,6 +28,8 @@ from reportlab.platypus import (
 )
 from auth import require_beta_access, track_usage_event, get_supabase
 
+
+
 # =========================================================
 # CONFIGURATION
 # =========================================================
@@ -2892,87 +2894,25 @@ if submit:
                 st.markdown("## Full Venture Intelligence Report")
                 st.markdown(report)
 
-                share_summary = (
-                    f"Venture Navigator AI generated a Venture Intelligence Report"
-                    f"{' for ' + company_name.strip() if company_name and company_name.strip() else ''}.\n\n"
-                    f"Primary decision: {primary_goal}\n"
-                    f"Stage: {stage}\n"
-                    f"Geography: {geography.strip() if geography else 'Not specified'}\n\n"
-                    "The report covers market opportunity, competitors, "
-                    "differentiation, MVP direction and practical next actions.\n\n"
-                    "Generated with Venture Navigator AI:\n"
-                    "https://venture.aicatalyststudio.co.za"
+                pdf_report = build_branded_pdf(
+                    report,
+                    company_name=company_name.strip() if company_name else None,
+                    executive_data=executive_data,
+                    currency_code=(currency.strip().upper() if currency else "ZAR"),
+                    venture_stage=stage,
+                    geography=(geography.strip() if geography else None),
                 )
 
-                download_col, copy_col, whatsapp_col = st.columns(3)
-
-                with download_col:
-                    pdf_report = build_branded_pdf(
-                        report,
-                        company_name=company_name.strip() if company_name else None,
-                        executive_data=executive_data,
-                        currency_code=(currency.strip().upper() if currency else "ZAR"),
-                        venture_stage=stage,
-                        geography=(geography.strip() if geography else None),
-                    )
-
-                    st.download_button(
-                        "⬇️ Download Branded PDF",
-                        data=pdf_report,
-                        file_name="venture_navigator_report.pdf",
-                        mime="application/pdf",
-                        use_container_width=True
-                    )
-
-                with copy_col:
-                    import streamlit.components.v1 as components
-                    import json
-
-                    copy_payload = json.dumps(report)
-
-                    components.html(
-                        f"""
-                        <button
-                            onclick='navigator.clipboard.writeText({copy_payload}).then(() => {{
-                                this.innerText = "✅ Copied";
-                                setTimeout(() => this.innerText = "📋 Copy Report", 1500);
-                            }})'
-                            style="
-                                width:100%;
-                                height:48px;
-                                padding:0;
-                                border-radius:8px;
-                                border:1px solid #178fc4;
-                                background:linear-gradient(90deg,#08678d,#159fd2);
-                                color:#ffffff;
-                                font-weight:700;
-                                font-size:0.95rem;
-                                cursor:pointer;
-                            "
-                        >
-                            📋 Copy Report
-                        </button>
-                        """,
-                        height=52
-                    )
-
-                with whatsapp_col:
-                    import urllib.parse
-
-                    whatsapp_url = (
-                        "https://wa.me/?text="
-                        + urllib.parse.quote(share_summary)
-                    )
-
-                    st.link_button(
-                        "📱 Share on WhatsApp",
-                        whatsapp_url,
-                        use_container_width=True
-                    )
+                st.download_button(
+                    "⬇️ Download Full Branded Report (PDF)",
+                    data=pdf_report,
+                    file_name="venture_navigator_report.pdf",
+                    mime="application/pdf",
+                    use_container_width=True
+                )
 
                 st.caption(
-                    "Tip: share the summary on WhatsApp, or download the branded "
-                    "PDF and attach it to WhatsApp or email."
+                    "Download the complete Venture Navigator report with full branding and logos."
                 )
 
             except Exception as error:
@@ -3266,6 +3206,39 @@ st.markdown(
         color: white !important;
         fill: white !important;
         stroke: white !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+
+# =========================================================
+# GLOBAL STREAMLIT CHROME SUPPRESSION
+# =========================================================
+st.markdown(
+    """
+    <style>
+    header[data-testid="stHeader"],
+    [data-testid="stToolbar"],
+    [data-testid="stDecoration"],
+    [data-testid="stStatusWidget"],
+    [data-testid="stAppDeployButton"],
+    #MainMenu,
+    footer,
+    [class*="viewerBadge"],
+    [class*="ViewerBadge"],
+    [class*="stDeployButton"] {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        min-height: 0 !important;
+    }
+
+    a[href*="github.com"],
+    a[href*="streamlit.io"],
+    a[href*="streamlit.app"] {
+        visibility: hidden !important;
     }
     </style>
     """,
