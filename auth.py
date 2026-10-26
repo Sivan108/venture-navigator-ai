@@ -505,6 +505,12 @@ def track_usage_event(
 
 def auth_screen():
 
+    if st.session_state.pop("vn_registration_complete", False):
+        st.success(
+            "Your Venture Navigator AI account has been created. "
+            "Please log in with your new account."
+        )
+
     st.markdown(AUTH_STYLE, unsafe_allow_html=True)
     st.markdown(AUTH_INPUT_FIX, unsafe_allow_html=True)
 
@@ -681,17 +687,22 @@ def auth_screen():
                     )
 
                     if response.session and response.user:
-                        st.session_state.vn_user = response.user
                         track_usage_event(
                             "signup",
                             user=response.user,
                             metadata={"full_name": full_name.strip()}
                         )
-                        st.success(
-                            "Welcome to Venture Navigator AI. "
-                            "Your Venture Navigator AI access is active."
-                        )
 
+                        # Force a clean post-registration state.
+                        try:
+                            get_supabase().auth.sign_out()
+                        except Exception:
+                            pass
+
+                        st.session_state.pop("vn_user", None)
+                        st.session_state.pop("vn_supabase_client", None)
+
+                        st.session_state.vn_registration_complete = True
                         st.rerun()
 
                     else:
@@ -821,25 +832,27 @@ def require_beta_access():
     days_remaining = None
     expiry = None
 
-    left, right = st.columns([8, 1.3])
+    st.markdown(
+        f"""
+        <div class="vn-beta-bar">
+            <strong>VENTURE NAVIGATOR AI • BETA</strong>
+            &nbsp;&nbsp;•&nbsp;&nbsp;
+            {user.email}
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
-    with left:
+    account_col, logout_col = st.columns([1.4, 1.0])
 
-        st.markdown(
-            f"""
-            <div class="vn-beta-bar">
-                <strong>VENTURE NAVIGATOR AI • BETA</strong>
-                &nbsp;&nbsp;•&nbsp;&nbsp;
-                &nbsp;&nbsp;•&nbsp;&nbsp;
-                &nbsp;&nbsp;•&nbsp;&nbsp;
-                {user.email}
-            </div>
-            """,
-            unsafe_allow_html=True
+    with account_col:
+        account_clicked = st.button(
+            "Account settings",
+            key="vn_account_settings_button",
+            use_container_width=True
         )
 
-    with right:
-
+    with logout_col:
         if st.button(
             "Log out",
             key="vn_beta_logout",
@@ -847,7 +860,13 @@ def require_beta_access():
         ):
             logout()
 
-    with st.expander("Account settings"):
+    if account_clicked:
+        st.session_state.vn_show_account_settings = not st.session_state.get(
+            "vn_show_account_settings",
+            False
+        )
+
+    if st.session_state.get("vn_show_account_settings", False):
 
         st.markdown("### Delete account")
 
@@ -863,10 +882,11 @@ def require_beta_access():
         )
 
         if st.button(
-            "Delete my account",
+            "Delete my account permanently",
             key="vn_delete_account",
             type="primary",
-            disabled=not confirm_delete
+            disabled=not confirm_delete,
+            use_container_width=True
         ):
 
             try:
