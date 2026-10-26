@@ -419,9 +419,20 @@ def get_supabase():
     return st.session_state.vn_supabase_client
 
 
-# =========================================================
-# DATE HELPERS
-# =========================================================
+def get_supabase_admin():
+    supabase_url = get_setting("SUPABASE_URL")
+    supabase_secret_key = get_setting("SUPABASE_SECRET_KEY")
+
+    if not supabase_url:
+        raise RuntimeError("SUPABASE_URL is missing.")
+
+    if not supabase_secret_key:
+        raise RuntimeError("SUPABASE_SECRET_KEY is missing.")
+
+    return create_client(
+        supabase_url,
+        supabase_secret_key
+    )
 
 def normalise_datetime(value):
 
@@ -701,6 +712,29 @@ def auth_screen():
 # LOGOUT
 # =========================================================
 
+def delete_current_account(user):
+    """
+    Permanently delete the signed-in Venture Navigator account
+    and associated Venture Navigator usage records.
+    """
+
+    user_id = str(user.id)
+
+    admin = get_supabase_admin()
+
+    admin.table("venture_usage_events").delete().eq(
+        "user_id", user_id
+    ).execute()
+
+    admin.table("venture_beta_users").delete().eq(
+        "user_id", user_id
+    ).execute()
+
+    admin.auth.admin.delete_user(user_id)
+
+    st.session_state.pop("vn_user", None)
+
+
 def logout():
 
     try:
@@ -812,6 +846,44 @@ def require_beta_access():
             use_container_width=True
         ):
             logout()
+
+    with st.expander("Account settings"):
+
+        st.markdown("### Delete account")
+
+        st.warning(
+            "Deleting your account is permanent. "
+            "Your Venture Navigator account and associated usage records "
+            "will be removed and cannot be restored."
+        )
+
+        confirm_delete = st.checkbox(
+            "I understand that this permanently deletes my account.",
+            key="vn_confirm_delete"
+        )
+
+        if st.button(
+            "Delete my account",
+            key="vn_delete_account",
+            type="primary",
+            disabled=not confirm_delete
+        ):
+
+            try:
+                delete_current_account(user)
+
+                st.success(
+                    "Your Venture Navigator account has been deleted."
+                )
+
+                st.session_state.clear()
+                st.rerun()
+
+            except Exception:
+                st.error(
+                    "We could not delete your account. "
+                    "Please try again or contact AI Catalyst Studio."
+                )
 
     return {
         "user": user,
