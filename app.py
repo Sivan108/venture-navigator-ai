@@ -61,6 +61,36 @@ st.set_page_config(
 
 
 # =========================================================
+# MULTISELECT SELECTED TAG READABILITY
+# =========================================================
+st.markdown(
+    """
+    <style>
+    /* Force selected multiselect chip text to bold white */
+    [data-baseweb="tag"],
+    [data-baseweb="tag"] *,
+    [data-baseweb="tag"] span,
+    [data-baseweb="tag"] p {
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        -webkit-text-fill-color: #ffffff !important;
+    }
+
+    [data-baseweb="tag"] svg,
+    [data-baseweb="tag"] svg * {
+        fill: #ffffff !important;
+        color: #ffffff !important;
+        stroke: #ffffff !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+
+
+
+# =========================================================
 # BRANDED PDF REPORT
 # =========================================================
 def build_branded_pdf(
@@ -3214,4 +3244,31 @@ st.markdown("""
 
 </style>
 """, unsafe_allow_html=True)
+
+
+# FINAL MULTISELECT WHITE TEXT OVERRIDE
+st.markdown(
+    """
+    <style>
+    div[data-testid="stMultiSelect"] [data-baseweb="tag"],
+    div[data-testid="stMultiSelect"] [data-baseweb="tag"] *,
+    div[data-testid="stMultiSelect"] span[data-baseweb="tag"],
+    div[data-testid="stMultiSelect"] span[data-baseweb="tag"] *,
+    .stMultiSelect [data-baseweb="tag"],
+    .stMultiSelect [data-baseweb="tag"] * {
+        color: white !important;
+        -webkit-text-fill-color: white !important;
+        font-weight: 700 !important;
+    }
+
+    div[data-testid="stMultiSelect"] [data-baseweb="tag"] svg,
+    .stMultiSelect [data-baseweb="tag"] svg {
+        color: white !important;
+        fill: white !important;
+        stroke: white !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
