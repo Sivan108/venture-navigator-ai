@@ -8,3 +8,6 @@ __pycache__/
 app_broken_backup.py
 app_pre_auth_backup.py
 app_before_auth_*.py
+# Local development backups
+app.py.backup_*
+venture_navigator_env_py39_backup/
