@@ -1942,6 +1942,20 @@ with st.form("venture_form"):
         placeholder="Select all evidence types that apply"
     )
 
+    # PASS06_EVIDENCE_CREDIBILITY
+    evidence_verification_status = st.selectbox(
+        "Evidence Verification Status",
+        [
+            "Self-reported — Supporting documentation not provided",
+            "Documented — Supporting records available",
+            "Independently verified — Confirmed by an external party",
+        ],
+        help=(
+            "Select the support available for your traction claims. "
+            "Venture Navigator does not independently verify documents."
+        ),
+    )
+
     traction_notes = st.text_area(
         "Traction / Validation Evidence — Details",
         placeholder=(
@@ -2091,6 +2105,23 @@ Traction evidence types:
 
 Traction / validation evidence details:
 {traction_notes}
+
+Evidence verification status (founder-declared):
+
+{evidence_verification_status}
+
+EVIDENCE CREDIBILITY RULES
+
+The verification status is self-declared by the founder.
+Venture Navigator has not independently checked the evidence.
+
+Do not invent supporting documents or verification results.
+Do not present founder-reported verification as independently
+confirmed by Venture Navigator.
+
+Identify material evidence gaps and recommend appropriate
+validation steps.
+
 
 Defensibility types selected:
 {defensibility_type_text}
@@ -2509,7 +2540,9 @@ def calculate_deterministic_scores(
         "Other": 1
     }
     customer_validation = max([validation_weights.get(x, 0) for x in traction_set] + [0])
-    if notes_present and customer_validation < 5: customer_validation += 1
+    # PASS06: Narrative notes provide context, not automatic scoring points.
+    # Customer-validation scores are based on selected evidence categories.
+    # Supporting claims are not independently verified by this function.
     customer_validation = max(1, min(5, customer_validation))
 
     # Commercial readiness measures evidence of a workable commercial model, not merely
@@ -2924,79 +2957,6 @@ if submit:
 
 
                 # Native mobile PDF sharing (WhatsApp, Mail, etc.)
-                pdf_base64 = base64.b64encode(pdf_report).decode("ascii")
-
-                share_html = """
-                <button id="share-pdf" style="
-                    width:100%;
-                    height:48px;
-                    border-radius:8px;
-                    border:1px solid #178fc4;
-                    background:linear-gradient(90deg,#08678d,#159fd2);
-                    color:#ffffff;
-                    font-weight:700;
-                    font-size:15px;
-                    cursor:pointer;
-                ">📤 Share PDF to WhatsApp</button>
-
-                <p id="share-message" style="
-                    font-size:12px;
-                    color:#27495b;
-                    margin-top:8px;
-                "></p>
-
-                <script>
-                const pdfBase64 = "PDF_BASE64_PLACEHOLDER";
-
-                document.getElementById("share-pdf").onclick = async () => {
-                    const message = document.getElementById("share-message");
-
-                    try {
-                        const binary = atob(pdfBase64);
-                        const bytes = new Uint8Array(binary.length);
-
-                        for (let i = 0; i < binary.length; i++) {
-                            bytes[i] = binary.charCodeAt(i);
-                        }
-
-                        const file = new File(
-                            [bytes],
-                            "venture_navigator_report.pdf",
-                            {type:"application/pdf"}
-                        );
-
-                        if (
-                            navigator.share &&
-                            navigator.canShare &&
-                            navigator.canShare({files:[file]})
-                        ) {
-                            await navigator.share({
-                                files:[file],
-                                title:"Venture Navigator Report"
-                            });
-                            message.textContent = "";
-                        } else {
-                            message.textContent =
-                                "Direct sharing is unavailable here. Download the PDF and attach it in WhatsApp.";
-                        }
-                    } catch (error) {
-                        if (error.name !== "AbortError") {
-                            message.textContent =
-                                "Sharing unavailable. Download the PDF and attach it in WhatsApp.";
-                        }
-                    }
-                };
-                </script>
-                """
-
-                components.html(
-                    share_html.replace(
-                        "PDF_BASE64_PLACEHOLDER",
-                        pdf_base64
-                    ),
-                    height=90
-                )
-
                 st.caption(
                     "Download the complete Venture Navigator report with full branding and logos."
                 )
