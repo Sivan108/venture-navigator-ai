@@ -1,3 +1,5 @@
+import base64
+import streamlit.components.v1 as components
 import os
 from pathlib import Path
 import streamlit as st
@@ -2766,6 +2768,15 @@ if submit:
             "or select an earlier venture stage."
         )
 
+    if (
+        "No validation yet" in traction_evidence_types
+        and len(traction_evidence_types) > 1
+    ):
+        stage_validation_error = (
+            "Please select either 'No validation yet' or the "
+            "validation evidence you have collected, not both."
+        )
+
     if not OPENAI_API_KEY:
 
         st.error(
@@ -2909,6 +2920,81 @@ if submit:
                     file_name="venture_navigator_report.pdf",
                     mime="application/pdf",
                     use_container_width=True
+                )
+
+
+                # Native mobile PDF sharing (WhatsApp, Mail, etc.)
+                pdf_base64 = base64.b64encode(pdf_report).decode("ascii")
+
+                share_html = """
+                <button id="share-pdf" style="
+                    width:100%;
+                    height:48px;
+                    border-radius:8px;
+                    border:1px solid #178fc4;
+                    background:linear-gradient(90deg,#08678d,#159fd2);
+                    color:#ffffff;
+                    font-weight:700;
+                    font-size:15px;
+                    cursor:pointer;
+                ">📤 Share PDF to WhatsApp</button>
+
+                <p id="share-message" style="
+                    font-size:12px;
+                    color:#27495b;
+                    margin-top:8px;
+                "></p>
+
+                <script>
+                const pdfBase64 = "PDF_BASE64_PLACEHOLDER";
+
+                document.getElementById("share-pdf").onclick = async () => {
+                    const message = document.getElementById("share-message");
+
+                    try {
+                        const binary = atob(pdfBase64);
+                        const bytes = new Uint8Array(binary.length);
+
+                        for (let i = 0; i < binary.length; i++) {
+                            bytes[i] = binary.charCodeAt(i);
+                        }
+
+                        const file = new File(
+                            [bytes],
+                            "venture_navigator_report.pdf",
+                            {type:"application/pdf"}
+                        );
+
+                        if (
+                            navigator.share &&
+                            navigator.canShare &&
+                            navigator.canShare({files:[file]})
+                        ) {
+                            await navigator.share({
+                                files:[file],
+                                title:"Venture Navigator Report"
+                            });
+                            message.textContent = "";
+                        } else {
+                            message.textContent =
+                                "Direct sharing is unavailable here. Download the PDF and attach it in WhatsApp.";
+                        }
+                    } catch (error) {
+                        if (error.name !== "AbortError") {
+                            message.textContent =
+                                "Sharing unavailable. Download the PDF and attach it in WhatsApp.";
+                        }
+                    }
+                };
+                </script>
+                """
+
+                components.html(
+                    share_html.replace(
+                        "PDF_BASE64_PLACEHOLDER",
+                        pdf_base64
+                    ),
+                    height=90
                 )
 
                 st.caption(
@@ -3245,3 +3331,6 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+
+
+st.markdown('\n<style>\n/* PASS05_SHARE_BUTTON_TEXT_FIX */\ndiv[data-testid="stDownloadButton"] button,\ndiv[data-testid="stDownloadButton"] button *,\ndiv[data-testid="stDownloadButton"] button p {\n    color: #FFFFFF !important;\n    -webkit-text-fill-color: #FFFFFF !important;\n    font-weight: 700 !important;\n    opacity: 1 !important;\n}\n</style>\n', unsafe_allow_html=True)
