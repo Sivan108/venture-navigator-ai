@@ -2948,7 +2948,7 @@ if submit:
                 )
 
                 st.download_button(
-                    "⬇️ Download Full Branded Report (PDF)",
+                    "⬇️ Download Full Report",
                     data=pdf_report,
                     file_name="venture_navigator_report.pdf",
                     mime="application/pdf",
