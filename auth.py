@@ -533,18 +533,6 @@ def auth_screen():
         "Sign in or create an account to continue."
     )
 
-    st.markdown(
-        """
-        <div class="vn-auth-trust">
-            <strong>🔒 Your venture ideas remain yours.</strong><br/>
-            Your venture information is treated as confidential. AI Catalyst Studio does not use
-            submitted venture ideas to develop competing products or commercial opportunities.
-            Venture content is processed only to provide the Venture Navigator service.
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
     login_tab, register_tab = st.tabs(
         ["Log in", "Create account"]
     )
