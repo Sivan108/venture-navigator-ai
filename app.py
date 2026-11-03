@@ -1544,20 +1544,6 @@ st.markdown(
     "gaps and commercial opportunities."
 )
 
-st.markdown(
-    """
-    <div class="vn-trust-panel">
-        <div class="vn-trust-title">🔒 Your venture ideas remain yours</div>
-        <p class="vn-trust-copy">
-            Your venture information is treated as confidential and is processed only to provide
-            Venture Navigator analysis. AI Catalyst Studio does not use your venture ideas to develop
-            competing products or commercial opportunities.
-        </p>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
 with st.form("venture_form"):
 
     st.markdown("### 1. Venture Basics")

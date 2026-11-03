@@ -71,7 +71,7 @@ AUTH_STYLE = """
     margin: 2rem auto;
 }
 
-'<div class="vn-auth-badge">BETA ACCESS</div>',
+.vn-auth-badge {
     display: inline-block;
     padding: 0.42rem 0.78rem;
     border-radius: 999px;
@@ -521,10 +521,6 @@ def auth_screen():
     elif Path("VN_Icon.png").exists():
         st.image("VN_Icon.png", width=180)
 
-    st.markdown(
-        '<div class="vn-auth-badge">BETA ACCESS</div>',
-        unsafe_allow_html=True
-    )
 
     st.title("Venture Navigator AI")
 
