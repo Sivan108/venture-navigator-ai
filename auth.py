@@ -617,10 +617,6 @@ def auth_screen():
                 key="vn_register_confirm"
             )
 
-            beta_acknowledgement = st.checkbox(
-                "I understand that Venture Navigator AI is currently in beta."
-            )
-
             register_clicked = st.form_submit_button(
                 "Create my account",
                 use_container_width=True
@@ -646,12 +642,6 @@ def auth_screen():
 
                 st.warning(
                     "The two passwords do not match."
-                )
-
-            elif not beta_acknowledgement:
-
-                st.warning(
-                    "Please acknowledge that this is a beta version."
                 )
 
             else:
@@ -785,7 +775,7 @@ def require_beta_access():
             st.markdown(
                 f"""
                 <div class="vn-beta-bar">
-                    <strong>VENTURE NAVIGATOR AI • BETA ADMIN</strong>
+                    <strong>VENTURE NAVIGATOR AI • ADMIN</strong>
                     &nbsp;&nbsp;•&nbsp;&nbsp;
                     {user.email}
                 </div>
@@ -819,7 +809,7 @@ def require_beta_access():
     st.markdown(
         f"""
         <div class="vn-beta-bar">
-            <strong>VENTURE NAVIGATOR AI • BETA</strong>
+            <strong>VENTURE NAVIGATOR AI</strong>
             &nbsp;&nbsp;•&nbsp;&nbsp;
             {user.email}
         </div>
