@@ -1104,7 +1104,7 @@ if os.path.exists("Elongated_Logo_Header.png"):
 if beta_access.get("is_admin"):
 
     with st.expander(
-        "📊 Venture Navigator Beta Stats",
+        "📊 Venture Navigator Admin Stats",
         expanded=False
     ):
         try:
@@ -1186,7 +1186,7 @@ if beta_access.get("is_admin"):
                 except Exception:
                     pass
 
-            st.markdown("### Venture Navigator Beta Control Room")
+            st.markdown("### Venture Navigator Admin Control Room")
 
             m1, m2, m3, m4, m5 = st.columns(5)
 
@@ -1211,7 +1211,7 @@ if beta_access.get("is_admin"):
             )
 
             m5.metric(
-                "Beta Access",
+                "Access Status",
                 "Open"
             )
 
@@ -1313,7 +1313,7 @@ if beta_access.get("is_admin"):
             # -------------------------------------------------
             # USER STATUS
             # -------------------------------------------------
-            st.markdown("#### Beta Users")
+            st.markdown("#### Registered Users")
 
             user_rows = []
 
@@ -1343,7 +1343,7 @@ if beta_access.get("is_admin"):
                     hide_index=True
                 )
             else:
-                st.info("No beta users recorded yet.")
+                st.info("No registered users recorded yet.")
 
             st.divider()
 
@@ -3070,7 +3070,7 @@ st.markdown("""
 st.divider()
 
 st.caption(
-    "Venture Navigator AI • Powered by AI Catalyst Studio • Beta  |  Your venture. Your data. Your intellectual property."
+    "Venture Navigator AI • Powered by AI Catalyst Studio  |  Your venture. Your data. Your intellectual property."
 )
 
 
